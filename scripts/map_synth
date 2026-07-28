@@ -1,94 +1,35 @@
-#!/usr/bin/env python3
-"""合成后重命名网表 cell 名：short → drive-strength 匹配 PnR LIB"""
-import re, sys, os
-
-# 158 cell → PnR 465 cell 映射（最小驱动强度）
-MAP = {
-    "a2111o": "a2111o_1", "a2111oi": "a2111oi_0", "a211o": "a211o_1",
-    "a211oi": "a211oi_1", "a21bo": "a21bo_1", "a21boi": "a21boi_0",
-    "a21o": "a21o_1", "a21oi": "a21oi_1", "a221o": "a221o_1",
-    "a221oi": "a221oi_1", "a222oi": "a222oi_1", "a22o": "a22o_1",
-    "a22oi": "a22oi_1", "a2bb2o": "a2bb2o_1", "a2bb2oi": "a2bb2oi_1",
-    "a311o": "a311o_1", "a311oi": "a311oi_1", "a31o": "a31o_1",
-    "a31oi": "a31oi_1", "a32o": "a32o_1", "a32oi": "a32oi_1",
-    "a41o": "a41o_1", "a41oi": "a41oi_1",
-    "and2": "and2_1", "and2b": "and2b_1",
-    "and3": "and3_1", "and3b": "and3b_1", "and4": "and4_1",
-    "and4b": "and4b_1", "and4bb": "and4bb_1",
-    "buf": "buf_1", "clkbuf": "clkbuf_1", "clkinv": "clkinv_1",
-    "conb": "conb_1", "decap": "decap_12",
-    "dfbbn": "dfbbn_1", "dfbbp": "dfbbp_1", "dfrbp": "dfrbp_1",
-    "dfrtn": "dfrtn_1", "dfrtp": "dfrtp_1",
-    "dfsbp": "dfsbp_1", "dfstp": "dfstp_1", "dfxbp": "dfxbp_1",
-    "dfxtp": "dfxtp_1", "diode": "diode_2",
-    "dlclkp": "dlclkp_1", "dlrbn": "dlrbn_1", "dlrbp": "dlrbp_1",
-    "dlrtn": "dlrtn_1", "dlrtp": "dlrtp_1",
-    "dlxbn": "dlxbn_1", "dlxbp": "dlxbp_1", "dlxtn": "dlxtn_1",
-    "dlxtp": "dlxtp_1",
-    "ebufn": "ebufn_1", "edfxbp": "edfxbp_1", "edfxtp": "edfxtp_1",
-    "einvn": "einvn_0", "einvp": "einvp_1",
-    "fa": "fa_1", "fah": "fah_1", "fahcin": "fahcin_1", "fahcon": "fahcon_1",
-    "ha": "ha_1", "inv": "inv_1",
-    "clkinvlp": "clkinv_1",
-    "maj3": "maj3_1", "mux2": "mux2_1", "mux2i": "mux2i_1", "mux4": "mux4_1",
-    "nand2": "nand2_1", "nand2b": "nand2b_1",
-    "nand3": "nand3_1", "nand3b": "nand3b_1",
-    "nand4": "nand4_1", "nand4b": "nand4b_1", "nand4bb": "nand4bb_1",
-    "nor2": "nor2_1", "nor2b": "nor2b_1",
-    "nor3": "nor3_1", "nor3b": "nor3b_1",
-    "nor4": "nor4_1", "nor4b": "nor4b_1", "nor4bb": "nor4bb_1",
-    "o2111a": "o2111a_1", "o2111ai": "o2111ai_1",
-    "o211a": "o211a_1", "o211ai": "o211ai_1",
-    "o21a": "o21a_1", "o21ai": "o21ai_0",
-    "o21ba": "o21ba_1", "o21bai": "o21bai_1",
-    "o221a": "o221a_1", "o221ai": "o221ai_1",
-    "o22a": "o22a_1", "o22ai": "o22ai_1",
-    "o2bb2a": "o2bb2a_1", "o2bb2ai": "o2bb2ai_1",
-    "o311a": "o311a_1", "o311ai": "o311ai_0",
-    "o31a": "o31a_1", "o31ai": "o31ai_1",
-    "o32a": "o32a_1", "o32ai": "o32ai_1",
-    "o41a": "o41a_1", "o41ai": "o41ai_1",
-    "or2": "or2_1", "or2b": "or2b_1",
-    "or3": "or3_1", "or3b": "or3b_1",
-    "or4": "or4_1", "or4b": "or4b_1", "or4bb": "or4bb_1",
-    "sdfbbn": "sdfbbn_1", "sdfbbp": "sdfbbp_1",
-    "sdfrbp": "sdfrbp_1", "sdfrtn": "sdfrtn_1", "sdfrtp": "sdfrtp_1",
-    "sdfsbp": "sdfsbp_1", "sdfstp": "sdfstp_1",
-    "sdfxbp": "sdfxbp_1", "sdfxtp": "sdfxtp_1",
-    "sdlclkp": "sdlclkp_1",
-    "sedfxbp": "sedfxbp_1", "sedfxtp": "sedfxtp_1",
-    "xnor2": "xnor2_1", "xnor3": "xnor3_1",
-    "xor2": "xor2_1", "xor3": "xor3_1",
-}
-
-def map_netlist(infile, outfile):
-    with open(infile) as f:
-        content = f.read()
-    
-    # 只替换 cell 实例（缩进的行 + cell名 + 空格 + 实例名 + (）
-    def replace_cell(m):
-        indent = m.group(1)
-        short = m.group(2)
-        inst = m.group(3)
-        mapped = MAP.get(short, short)
-        return f"{indent}{mapped} {inst}("
-    
-    new_content = re.sub(r'^(\s+)(\w+)\s+(\w+)\s*\(', replace_cell, content, flags=re.MULTILINE)
-    
-    # 也替换 .submod 和 module 名？
-    # module 名不用改（只是定义）
-    
-    with open(outfile, 'w') as f:
-        f.write(new_content)
-    
-    # 统计
-    old_cells = len(re.findall(r'\b(\w+)\(', content))
-    mapped_count = sum(1 for short, long in MAP.items() 
-                       if re.search(rf'\b{short}\(', content))
-    print(f"  {os.path.basename(infile)}: {mapped_count} cells renamed → {os.path.basename(outfile)}")
-
-if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("用法: map_synth <输入.v> <输出.v>")
-        sys.exit(1)
-    map_netlist(sys.argv[1], sys.argv[2])
+#!/bin/sh
+# map_synth - 网表 cell 重命名（纯 sh，零依赖）
+IN="$1"; OUT="$2"
+[ -z "$IN" -o -z "$OUT" ] && echo "用法: map_synth <输入> <输出>" && exit 1
+sed \
+  -e 's/\ba2111o\b/a2111o_1/g' -e 's/\ba2111oi\b/a2111oi_0/g' \
+  -e 's/\ba211o\b/a211o_1/g' -e 's/\ba211oi\b/a211oi_1/g' \
+  -e 's/\ba21bo\b/a21bo_1/g' -e 's/\ba21boi\b/a21boi_0/g' \
+  -e 's/\ba21o\b/a21o_1/g' -e 's/\ba21oi\b/a21oi_1/g' \
+  -e 's/\ba221o\b/a221o_1/g' -e 's/\ba221oi\b/a221oi_1/g' \
+  -e 's/\ba222oi\b/a222oi_1/g' -e 's/\ba22o\b/a22o_1/g' \
+  -e 's/\ba22oi\b/a22oi_1/g' -e 's/\ba2bb2o\b/a2bb2o_1/g' \
+  -e 's/\ba2bb2oi\b/a2bb2oi_1/g' -e 's/\ba311o\b/a311o_1/g' \
+  -e 's/\ba311oi\b/a311oi_1/g' -e 's/\ba31o\b/a31o_1/g' \
+  -e 's/\ba31oi\b/a31oi_1/g' -e 's/\ba32o\b/a32o_1/g' \
+  -e 's/\ba32oi\b/a32oi_1/g' -e 's/\ba41o\b/a41o_1/g' \
+  -e 's/\ba41oi\b/a41oi_1/g' \
+  -e 's/\band2\b/and2_1/g' -e 's/\band2b\b/and2b_1/g' \
+  -e 's/\band3\b/and3_1/g' -e 's/\band3b\b/and3b_1/g' \
+  -e 's/\band4\b/and4_1/g' -e 's/\band4b\b/and4b_1/g' -e 's/\band4bb\b/and4bb_1/g' \
+  -e 's/\bbuf\b/buf_1/g' -e 's/\bclkbuf\b/clkbuf_1/g' \
+  -e 's/\bclkinv\b/clkinv_1/g' -e 's/\bclkinvlp\b/clkinv_1/g' \
+  -e 's/\bconb\b/conb_1/g' -e 's/\bdecap\b/decap_12/g' \
+  -e 's/\bdfxtp\b/dfxtp_1/g' -e 's/\bdfrtp\b/dfrtp_1/g' \
+  -e 's/\binv\b/inv_1/g' \
+  -e 's/\bnand2\b/nand2_1/g' -e 's/\bnand2b\b/nand2b_1/g' \
+  -e 's/\bnand3\b/nand3_1/g' -e 's/\bnand3b\b/nand3b_1/g' \
+  -e 's/\bnand4\b/nand4_1/g' -e 's/\bnand4b\b/nand4b_1/g' -e 's/\bnand4bb\b/nand4bb_1/g' \
+  -e 's/\bnor2\b/nor2_1/g' -e 's/\bnor2b\b/nor2b_1/g' \
+  -e 's/\bnor3\b/nor3_1/g' -e 's/\bnor3b\b/nor3b_1/g' \
+  -e 's/\bnor4\b/nor4_1/g' -e 's/\bnor4b\b/nor4b_1/g' -e 's/\bnor4bb\b/nor4bb_1/g' \
+  -e 's/\bxnor2\b/xnor2_1/g' -e 's/\bxnor3\b/xnor3_1/g' \
+  -e 's/\bxor2\b/xor2_1/g' -e 's/\bxor3\b/xor3_1/g' \
+  "$IN" > "$OUT"
+echo "  $(basename $IN): renamed → $(basename $OUT)"
