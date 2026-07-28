@@ -1,35 +1,128 @@
 #!/bin/sh
-# gen_pdk_libs - PDK Liberty 维护工具（纯 sh）
-# 用法: gen_pdk_libs [copy|expand|both]
+# gen_pdk_libs - PDK Liberty 维护工具（纯 sh + awk，零 Python）
 set -e
 PDK_ROOT="${PDK_ROOT:-/home/lik/.local/share/pdk}"
 SRC_DIR="${SRC_DIR:-/run/media/lik/git/skywater-pdk/libraries/sky130_fd_sc_hd/latest}"
-LIB_DIR="$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/lib"
 
 cmd="${1:-all}"
 
 copy_original() {
-    echo "=== 恢复原始 LIB ==="
+    echo "=== 复制原始 LIB ==="
     for ver in sky130A sky130B; do
         dst="$PDK_ROOT/$ver/libs.ref/sky130_fd_sc_hd/lib"
-        ls "$SRC_DIR/timing/"*.lib 2>/dev/null | while read f; do
+        mkdir -p "$dst"
+        for f in "$SRC_DIR/timing/"*.lib; do
+            [ -f "$f" ] || continue
             name=$(basename "$f" | sed 's/sky130_fd_sc_hd__//')
-            cp "$f" "$dst/$name" 2>/dev/null || true
+            cp "$f" "$dst/$name" && echo "  $name"
         done
         echo "  $ver: 原始 LIB 已恢复"
     done
 }
 
 expand_libs() {
-    echo "=== 展开 PnR LIB（需要 Python） ==="
-    echo "  使用 python3 gen_pdk_libs.py expand 获得完整功能"
-    echo "  或查看 patches/gen_pdk_libs.py"
+    LEF="$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef"
+    [ ! -f "$LEF" ] && echo "❌ 找不到 LEF: $LEF" && exit 1
+
+    echo "=== 展开 PnR LIB ==="
+    for ver in sky130A sky130B; do
+        libdir="$PDK_ROOT/$ver/libs.ref/sky130_fd_sc_hd/lib"
+        libfile="$libdir/tt_025C_1v80.lib"
+        [ ! -f "$libfile" ] && echo "  跳过 $ver（无 tt_025C_1v80.lib）" && continue
+        
+        outfile="$libdir/tt_025C_1v80_pnr.lib"
+        
+        # 用 awk 展开 LIB
+        awk -v LEF="$LEF" '
+        BEGIN {
+            # 读 LEF，收集所有 MACRO 名
+            while ((getline line < LEF) > 0) {
+                if (line ~ /^MACRO /) {
+                    name = line
+                    gsub(/^MACRO /, "", name)
+                    gsub(/ .*$/, "", name)
+                    # 分离 base 和 drive
+                    if (match(name, /^(.+)_([0-9]+)$/, a)) {
+                        base = a[1]; drive = a[2]
+                        bases[base] = bases[base] " " name
+                        if (!(base in count)) count[base] = 0
+                        count[base]++
+                    }
+                }
+            }
+            close(LEF)
+            in_cell = 0
+            cell_block = ""
+            cell_name = ""
+            expanded = 0
+        }
+        /^[[:space:]]*cell \(/ {
+            if (in_cell) {
+                # 处理上一个 cell
+                process_cell()
+            }
+            in_cell = 1
+            cell_block = $0 "\n"
+            match($0, /cell \(([^)]+)\)/, a)
+            cell_name = a[1]
+            next
+        }
+        in_cell {
+            cell_block = cell_block $0 "\n"
+            if ($0 ~ /^[[:space:]]*}/) {
+                process_cell()
+                in_cell = 0
+                cell_block = ""
+            }
+            next
+        }
+        { print }
+        END {
+            if (in_cell) process_cell()
+        }
+        function process_cell() {
+            # 找 footprint
+            fp = ""
+            if (match(cell_block, /cell_footprint[[:space:]]*:[[:space:]]*"([^"]+)"/, a))
+                fp = a[1]
+            if (fp == "") {
+                print cell_block
+                return
+            }
+            # 检查 footprint 是否在 LEF 中
+            short_fp = fp
+            gsub(/^sky130_fd_sc_hd__/, "", short_fp)
+            
+            if (short_fp in bases) {
+                split(bases[short_fp], list)
+                all_seen[""]
+                for (i in all_seen) {}  # 重置数组（awk 技巧）
+                delete all_seen
+                for (i = 1; i <= length(list); i++) {
+                    lef_cell = list[i]
+                    if (lef_cell in all_seen) continue
+                    all_seen[lef_cell] = 1
+                    new_block = cell_block
+                    gsub(/cell \(([^)]+)\)/, "cell (" lef_cell ")", new_block)
+                    gsub(/cell_footprint[[:space:]]*:[[:space:]]*"[^"]*"/, "cell_footprint : \"" lef_cell "\"", new_block)
+                    printf "%s", new_block
+                    expanded++
+                }
+            } else {
+                printf "%s", cell_block
+            }
+        }
+        ' "$libfile" > "$outfile"
+        
+        newcnt=$(grep -c "cell (" "$outfile" 2>/dev/null || echo 0)
+        echo "  $ver: $newcnt cells → $(basename $outfile)"
+    done
 }
 
 case "$cmd" in
     copy) copy_original ;;
     expand) expand_libs ;;
     both) copy_original; expand_libs ;;
-    *) echo "用法: gen_pdk_libs [copy|expand|both]" ;;
+    *) echo "用法: gen_pdk_libs [copy|expand|both]" && exit 1 ;;
 esac
 echo "Done"
