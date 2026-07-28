@@ -82,12 +82,13 @@ Drink-EDA/
 │   ├── openroad_readlef_update_lib.patch
 │   ├── gen_pdk_libs.patch
 │   └── ...
-├── scripts/      ← 流程工具
-│   ├── lfl              ← 流程控制器（纯 sh）
-│   ├── map_synth        ← 网表重命名（纯 sh）
+├── scripts/      ← 流程工具（纯 sh，零 Python）
+│   ├── lfl              ← 流程控制器
+│   ├── map_synth        ← 网表重命名
 │   ├── gen_pdk_libs     ← PDK 维护（sh + awk）
 │   ├── gen_lib          ← Liberty 生成
-│   └── openlane-native  ← 一键 RTL→PnR
+│   ├── openlane-native  ← 一键 RTL→PnR
+│   └── gen_manifests.py ← 构建机专用（不进容器）
 ├── docs/         ← 编译指南
 └── patches/      ← 补丁文件
 ```

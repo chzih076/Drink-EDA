@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Generate EDA tool manifests with full dependency lists."""
+"""
+生成 manifests/*.toml 安装清单。
+
+仅在构建机上运行，读取宿主机已编译的二进制和动态库依赖，
+自动输出 TOML 格式安装清单。
+
+不进容器／不进 DrinkLinux 发行版。
+依赖: python3, ldd
+"""
 import subprocess, os, glob, json
 
 def get_deps(bin_path):
