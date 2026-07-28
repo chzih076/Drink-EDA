@@ -1,12 +1,9 @@
-# .drink 包含 GPL 代码，不纳入 git 版本管理
 *.drink
-# 编译产物
 __pycache__/
 *.pyc
 *.pyo
 target/
 build/
-# 系统文件
 .DS_Store
 *.swp
 *.swo
