@@ -82,10 +82,13 @@ openroad -no_init -no_splash -exit << TCL 2>&1 | tee "$RUN_DIR/pnr.log"
   make_tracks
   place_pins -hor_layers met1 -ver_layers met2
   set b [ord::get_db_block]
+  set x 12; set y 12
   foreach i [\$b getInsts] {
     set m [\$i getMaster]; set mn [\$m getName]
     if {[string match "dlymetal*" \$mn] || [string match "lpflow*" \$mn] || [string match "probe*" \$mn]} { continue }
-    place_inst -name [\$i getName] -location "12 12"
+    place_inst -name [\$i getName] -location "\$x \$y"
+    set x [expr \$x + 3]
+    if {\$x > 80} { set x 12; set y [expr \$y + 4] }
   }
   detailed_placement; global_route; detailed_route
   write_def $RUN_DIR/${TOP_MODULE}.def
