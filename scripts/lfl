@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # lfl - LibreLane Flow (pure bash, no Python dependency)
 # LoongArch chip design flow controller
 set -euo pipefail
@@ -27,11 +27,11 @@ while IFS= read -r line; do
     esac
 done < <(grep -v "^#" "$CONFIG" | grep "^[A-Z]")
 
-# 清理引号（YAML 值可能有 " 包裹）
+# 清理引号（YAML 值可能有 " 包裹，POSIX-compatible）
 for var in DESIGN_NAME VERILOG_FILES TOP_MODULE CLOCK_PORT PDK_ROOT PDK STD_CELL_LIBRARY; do
-    val="${!var}"
+    eval "val=\"\$$var\""
     val="${val%\"}"; val="${val#\"}"
-    printf -v "$var" "%s" "$val"
+    eval "$var=\"\$val\""
 done
 TOP_MODULE="${TOP_MODULE:-$DESIGN_NAME}"
 [ -z "$TOP_MODULE" ] && err "DESIGN_NAME 或 TOP_MODULE 未指定"
