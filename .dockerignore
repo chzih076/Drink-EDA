@@ -1,0 +1,19 @@
+# Drink Linux .dockerignore
+.git/
+.gitignore
+pkg-mgr/
+busybox/
+boot/
+build/
+img/
+rootfs/
+screenshots/
+desktop/*.o
+desktop/desktop
+desktop/libdrinkui.so
+desktop/core/*.o
+desktop/server/*.o
+drink-linux-v0.1.iso
+mkiso.sh
+build.sh
+*.md

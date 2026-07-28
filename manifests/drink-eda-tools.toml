@@ -1,0 +1,14 @@
+name = "drink-eda-tools"
+version = "1.0"
+desc = "EDA flow tools: lfl, map_synth, gen_pdk_libs, gen_lib, openlane-native"
+deps = ["lib-src"]
+provides = []
+license = "Apache-2.0"
+files = []
+
+[install]
+files = [
+  { src = "/usr/local/bin/lfl", dst = "/usr/local/bin/lfl", mode = "0o755" },
+  { src = "/usr/local/bin/map_synth", dst = "/usr/local/bin/map_synth", mode = "0o755" },
+  { src = "/usr/local/bin/openlane-native", dst = "/usr/local/bin/openlane-native", mode = "0o755" },
+]

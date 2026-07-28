@@ -1,0 +1,162 @@
+diff --git a/src/OpenRoad.cc b/src/OpenRoad.cc
+index 8cb0cae14d..d9ca6c19f7 100644
+--- a/src/OpenRoad.cc
++++ b/src/OpenRoad.cc
+@@ -45,14 +45,18 @@
+ #include "exa/example.h"
+ #include "fin/Finale.h"
+ #include "fin/MakeFinale.h"
++#ifdef HAS_GPL
+ #include "gpl/MakeReplace.h"
+ #include "gpl/Replace.h"
++#endif
+ #include "grt/GlobalRouter.h"
+ #include "grt/MakeGlobalRouter.h"
+ #include "gui/MakeGui.h"
+ #include "ifp/MakeInitFloorplan.hh"
++#ifdef HAS_MPL
+ #include "mpl/MakeMacroPlacer.h"
+ #include "mpl/rtl_mp.h"
++#endif
+ #include "odb/3dblox.h"
+ #include "odb/MakeOdb.h"
+ #include "odb/cdl.h"
+@@ -63,8 +67,10 @@
+ #include "odb/lefout.h"
+ #include "ord/InitOpenRoad.hh"
+ #include "pad/MakeICeWall.h"
++#ifdef HAS_PAR
+ #include "par/MakePartitionMgr.h"
+ #include "par/PartitionMgr.h"
++#endif
+ #include "pdn/MakePdnGen.hh"
+ #include "pdn/PdnGen.hh"
+ #include "ppl/IOPlacer.h"
+@@ -81,8 +87,10 @@
+ #include "rsz/Resizer.hh"
+ #include "sta/VerilogReader.hh"
+ #include "stt/MakeSteinerTreeBuilder.h"
++#ifdef HAS_SYN
+ #include "syn/MakeSynthesis.h"
+ #include "syn/synthesis.h"
++#endif
+ #include "tap/MakeTapcell.h"
+ #include "tap/tapcell.h"
+ #include "upf/MakeUpf.h"
+@@ -127,27 +135,35 @@ OpenRoad::~OpenRoad()
+   // sta::deleteAllMemory();
+   delete ioPlacer_;
+   delete resizer_;
++#ifdef HAS_SYN
+   delete synthesis_;
++#endif
+   delete opendp_;
+   delete global_router_;
+   delete restructure_;
+   delete clock_gating_;
+   delete tritonCts_;
+   delete tapcell_;
++#ifdef HAS_MPL
+   delete macro_placer_;
++#endif
+   delete example_;
+   delete extractor_;
+   delete detailed_router_;
+   // Stop the web server first — its I/O threads access the database
+   // for tile rendering, so it must be torn down before the DB.
+   delete web_server_;
++#ifdef HAS_GPL
+   delete replace_;
++#endif
+   delete pdnsim_;
+   delete finale_;
+   delete ram_gen_;
+   delete antenna_checker_;
+   odb::dbDatabase::destroy(db_);
++#ifdef HAS_PAR
+   delete partitionMgr_;
++#endif
+   delete pdngen_;
+   delete icewall_;
+   delete distributer_;
+@@ -238,7 +254,9 @@ void OpenRoad::init(Tcl_Interp* tcl_interp,
+                               global_router_,
+                               opendp_,
+                               estimate_parasitics_);
++#ifdef HAS_SYN
+   synthesis_ = new syn::Synthesis(db_, sta_, resizer_, logger_);
++#endif
+   finale_ = new fin::Finale(db_, logger_);
+   restructure_ = new rmp::Restructure(
+       logger_, sta_, db_, resizer_, estimate_parasitics_);
+@@ -251,15 +269,21 @@ void OpenRoad::init(Tcl_Interp* tcl_interp,
+                                   resizer_,
+                                   estimate_parasitics_);
+   tapcell_ = new tap::Tapcell(db_, logger_);
++#ifdef HAS_PAR
+   partitionMgr_ = new par::PartitionMgr(db_, getDbNetwork(), sta_, logger_);
++#endif
++#ifdef HAS_MPL
+   macro_placer_ = new mpl::MacroPlacer(db_, sta_, logger_, partitionMgr_);
++#endif
+   extractor_ = new rcx::Ext(db_, logger_, getVersion());
+   distributer_ = new dst::Distributed(logger_);
+   detailed_router_ = new drt::TritonRoute(
+       db_, logger_, service_registry_, distributer_, stt_builder_);
+   drt::initGui(detailed_router_);
+ 
++#ifdef HAS_GPL
+   replace_ = new gpl::Replace(db_, sta_, resizer_, global_router_, logger_);
++#endif
+   pdnsim_ = new psm::PDNSim(logger_, db_, sta_, estimate_parasitics_, opendp_);
+   pdngen_ = new pdn::PdnGen(db_, logger_);
+   ram_gen_ = new ram::RamGen(getDbNetwork(),
+@@ -288,18 +312,24 @@ void OpenRoad::init(Tcl_Interp* tcl_interp,
+   upf::initUpf(tcl_interp);
+   ifp::initInitFloorplan(tcl_interp);
+   sta::initDbSta(tcl_interp);
++#ifdef HAS_SYN
+   syn::initSynthesis(tcl_interp);
++#endif
+   rsz::initResizer(tcl_interp);
+   ppl::initIoplacer(tcl_interp);
++#ifdef HAS_GPL
+   gpl::initReplace(tcl_interp);
+   gpl::initReplaceGraphics(replace_, logger_);
++#endif
+   dpl::initOpendp(tcl_interp);
+   fin::initFinale(tcl_interp);
+   ram::initRamGen(tcl_interp);
+   grt::initTcl(tcl_interp);
+   cts::initTritonCts(tcl_interp);
+   tap::initTapcell(tcl_interp);
++#ifdef HAS_MPL
+   mpl::initMacroPlacer(tcl_interp);
++#endif
+   exa::initExample(tcl_interp);
+   rcx::initOpenRCX(tcl_interp);
+   pad::initICeWall(tcl_interp);
+@@ -308,7 +338,9 @@ void OpenRoad::init(Tcl_Interp* tcl_interp,
+   drt::initTcl(tcl_interp);
+   psm::initPDNSim(tcl_interp);
+   ant::initAntennaChecker(tcl_interp);
++#ifdef HAS_PAR
+   par::initPartitionMgr(tcl_interp);
++#endif
+   pdn::initPdnGen(tcl_interp);
+   dst::initDistributed(tcl_interp);
+   stt::initSteinerTreeBuilder(tcl_interp);
+@@ -352,7 +384,12 @@ void OpenRoad::readLef(const char* filename,
+     if (!tech) {
+       logger_->error(ORD, 51, "Technology {} not found", tech_name);
+     }
+-    lef_reader.createLib(tech, lib_name, filename);
++    odb::dbLib* lib = db_->findLib(lib_name);
++    if (lib) {
++      lef_reader.updateLib(lib, filename);
++    } else {
++      lef_reader.createLib(tech, lib_name, filename);
++    }
+   }
+ }
+ 

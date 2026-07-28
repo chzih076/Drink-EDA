@@ -1,0 +1,12 @@
+name = "iverilog"
+version = "12.0"
+desc = "Icarus Verilog simulator"
+deps = ["lib-src"]
+provides = []
+license = "GPL-2.0-only"
+files = []
+
+[install]
+files = [
+  { src = "/usr/bin/iverilog", dst = "/usr/local/bin/iverilog", mode = "0o755" },
+]

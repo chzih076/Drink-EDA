@@ -1,0 +1,12 @@
+name = "sky130-pdk"
+version = "1.0"
+desc = "SkyWater sky130A PDK"
+deps = ["lib-src"]
+provides = []
+license = "Apache-2.0"
+files = []
+
+[install]
+files = [
+  { src = "/home/lik/.local/share/pdk/sky130A", dst = "/home/user/.local/share/pdk/sky130A", mode = "0o755" },
+]

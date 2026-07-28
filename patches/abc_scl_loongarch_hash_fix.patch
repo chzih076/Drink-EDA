@@ -1,0 +1,44 @@
+--- a/abc/src/map/scl/sclLibUtil.c
++++ b/abc/src/map/scl/sclLibUtil.c
+@@ -48,13 +48,13 @@
+ static unsigned Abc_SclHashString( char * pName, int TableSize ) 
+ {
+-    static int s_Primes[10] = { 1291, 1699, 2357, 4177, 5147, 5647, 6343, 7103, 7873, 8147 };
+-    unsigned i, Key = 0;
+-    for ( i = 0; pName[i] != '\0'; i++ )
+-        Key += s_Primes[i%10]*pName[i]*pName[i];
+-    return Key % TableSize;
++    unsigned hash = 5381;
++    int c;
++    while ( (c = *pName++) )
++        hash = ((hash << 5) + hash) + c;
++    return hash % TableSize;
+ }
+ int * Abc_SclHashLookup( SC_Lib * p, char * pName )
+ {
+-    int i;
+-    for ( i = Abc_SclHashString(pName, p->nBins); i < p->nBins; i = (i + 1) % p->nBins )
++    int i, Counter, nBins = p->nBins;
++    if ( nBins == 0 ) return NULL;
++    for ( Counter = 0; Counter < nBins; Counter++ )
++    {
++        i = (Abc_SclHashString(pName, nBins) + Counter) % nBins;
+         if ( p->pBins[i] == -1 || !strcmp(pName, SC_LibCell(p, p->pBins[i])->pName) )
+             return p->pBins + i;
++    }
+     assert( 0 );
+     return NULL;
+ }
+@@ -69,12 +71,11 @@
+     SC_LibForEachCell( p, pCell, i )
+     {
++        if ( pCell->pName == NULL ) continue;
+         pPlace = Abc_SclHashLookup( p, pCell->pName );
+-        if ( *pPlace != -1 && pCell->pName )
+-            printf( "There are two standard cells with the same name (%s).\n", pCell->pName );
+-        assert( *pPlace == -1 );
++        if ( *pPlace != -1 )
++            continue;
+         *pPlace = i;
+     }
+ }

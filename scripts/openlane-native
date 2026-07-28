@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# openlane-native - OpenLane 等价原生流程（单脚本）
+# 用法: ./openlane-native <设计名> <顶层模块> <时钟端口> <时钟周期>
+# 示例: ./openlane-native counter counter clk 10
+set -euo pipefail
+DESIGN="${1:-counter}"
+TOP="${2:-counter}"
+CLK_PORT="${3:-clk}"
+CLK_PERIOD="${4:-10}"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DESIGN_DIR="./designs/$DESIGN"
+RESULTS_DIR="$DESIGN_DIR/results"
+PDK_ROOT="${PDK_ROOT:-/home/lik/.local/share/pdk}"
+PDK="${PDK:-sky130A}"
+LIB_DIR="$PDK_ROOT/$PDK/libs.ref/sky130_fd_sc_hd"
+
+mkdir -p "$DESIGN_DIR" "$RESULTS_DIR"
+
+echo "=== Phase 1: Synthesis (yosys) ==="
+yosys -q -p "
+  read_verilog $DESIGN_DIR/$DESIGN.v;
+  synth -top $TOP;
+  dfflibmap -liberty $LIB_DIR/lib/tt_025C_1v80_pnr.lib;
+  abc -liberty $LIB_DIR/lib/tt_025C_1v80_pnr.lib;
+  opt; clean;
+  write_verilog $RESULTS_DIR/${DESIGN}_synth.v;
+  stat -liberty $LIB_DIR/lib/tt_025C_1v80_pnr.lib;
+"
+
+echo "=== Phase 2: PnR (OpenROAD) ==="
+cat > "$RESULTS_DIR/pnr.tcl" << TCLEOF
+set lib_dir "$LIB_DIR"
+read_liberty \$lib_dir/lib/tt_025C_1v80_pnr.lib
+read_lef \$lib_dir/techlef/sky130_fd_sc_hd.tlef
+read_lef \$lib_dir/lef/sky130_fd_sc_hd.lef
+read_verilog $RESULTS_DIR/${DESIGN}_synth.v
+link_design "$TOP"
+puts "=== [llength [get_cells -hierarchical]] cells ==="
+
+initialize_floorplan -die_area "0 0 100 100" -core_area "10 10 90 90" -site unithd
+make_tracks
+place_pins -hor_layers met1 -ver_layers met2
+
+set block [ord::get_db_block]
+foreach inst [\$block getInsts] {
+    set master [\$inst getMaster]
+    set mname [\$master getName]
+    if {[string match "dlymetal*" \$mname] || [string match "lpflow*" \$mname] || [string match "probe*" \$mname]} { continue }
+    place_inst -name [\$inst getName] -location "12 12"
+}
+detailed_placement
+global_route
+detailed_route
+write_def $RESULTS_DIR/${DESIGN}.def
+write_verilog $RESULTS_DIR/${DESIGN}_pnr.v
+puts "=== DONE ==="
+TCLEOF
+
+openroad -no_init -no_splash -exit "$RESULTS_DIR/pnr.tcl"
+
+echo ""
+echo "=== 完成 ==="
+echo "  网表: $RESULTS_DIR/${DESIGN}_synth.v"
+echo "  DEF:  $RESULTS_DIR/${DESIGN}.def"
+echo "  PnR:  $RESULTS_DIR/${DESIGN}_pnr.v"
+echo ""
+echo "  转 GDS: magic -dnull -noconsole <<< \"gds readonly true; def read $RESULTS_DIR/${DESIGN}.def; gds write $RESULTS_DIR/${DESIGN}.gds\""

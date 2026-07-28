@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# lfl - LibreLane Flow (pure bash, no Python dependency)
+# LoongArch chip design flow controller
+set -euo pipefail
+
+DESIGN_NAME="" VERILOG_FILES="" TOP_MODULE="" CLOCK_PORT="clk"
+CLOCK_PERIOD=20 PDK_ROOT="${PDK_ROOT:-/home/user/.local/share/pdk}"
+PDK="${PDK:-sky130A}" STD_CELL_LIBRARY="sky130_fd_sc_hd"
+RUN_DIR="" RED='\033[0;31m' GREEN='\033[0;32m' NC='\033[0m'
+log()  { echo -e "${GREEN}[lfl]${NC} $*"; }
+err()  { echo -e "${RED}[lfl] ERROR:${NC} $*"; exit 1; }
+
+[ $# -lt 1 ] && echo "用法: lfl <config.yaml>" && exit 1
+CONFIG="$1"; shift; [ ! -f "$CONFIG" ] && err "找不到 $CONFIG"
+
+# 简易 YAML 解析
+while IFS= read -r line; do
+    case "$line" in
+        DESIGN_NAME:*)   DESIGN_NAME="${line#*: }" ;;
+        VERILOG_FILES:*) VERILOG_FILES="${line#*: }" ;;
+        TOP_MODULE:*)    TOP_MODULE="${line#*: }" ;;
+        CLOCK_PORT:*)    CLOCK_PORT="${line#*: }" ;;
+        CLOCK_PERIOD:*)  CLOCK_PERIOD="${line#*: }" ;;
+        PDK_ROOT:*)      PDK_ROOT="${line#*: }" ;;
+        PDK:*)           PDK="${line#*: }" ;;
+        STD_CELL_LIBRARY:*) STD_CELL_LIBRARY="${line#*: }" ;;
+    esac
+done < <(grep -v "^#" "$CONFIG" | grep "^[A-Z]")
+
+# 清理引号（YAML 值可能有 " 包裹）
+for var in DESIGN_NAME VERILOG_FILES TOP_MODULE CLOCK_PORT PDK_ROOT PDK STD_CELL_LIBRARY; do
+    val="${!var}"
+    val="${val%\"}"; val="${val#\"}"
+    printf -v "$var" "%s" "$val"
+done
+TOP_MODULE="${TOP_MODULE:-$DESIGN_NAME}"
+[ -z "$TOP_MODULE" ] && err "DESIGN_NAME 或 TOP_MODULE 未指定"
+
+CONFIG_DIR="$(dirname "$(readlink -f "$CONFIG")")"
+cd "$CONFIG_DIR"
+
+# 展开 VERILOG_FILES（支持 dir:: 前缀）
+case "$VERILOG_FILES" in
+    dir::*) VSRC="${VERILOG_FILES#dir::}"; VERILOG_FILES="" 
+        for f in $VSRC; do [ -f "$f" ] && VERILOG_FILES="$VERILOG_FILES $f"; done ;;
+esac
+
+LIB_DIR="$PDK_ROOT/$PDK/libs.ref/$STD_CELL_LIBRARY"
+CONFIG_DIR="$(dirname "$(readlink -f "$CONFIG")")"
+RUN_DIR="$CONFIG_DIR/runs/RUN_$(date +%Y-%m-%d_%H-%M-%S)"
+mkdir -p "$RUN_DIR"
+log "运行目录: $RUN_DIR"
+
+# Phase 1: 综合
+log "Phase 1: Synthesis"
+SYNTH_V="$RUN_DIR/${TOP_MODULE}_synth.v"
+yosys -q -p "
+  read_verilog $VERILOG_FILES;
+  synth -top $TOP_MODULE;
+  dfflibmap -liberty $LIB_DIR/lib/tt_025C_1v80.lib;
+  abc -liberty $LIB_DIR/lib/tt_025C_1v80.lib;
+  opt; clean;
+  write_verilog $SYNTH_V;
+" 2>&1 | tee "$RUN_DIR/synth.log"
+log "  合成完成"
+
+# Phase 2: 重命名
+log "Phase 2: Cell rename"
+PNR_V="${SYNTH_V%.v}_pnr.v"
+map_synth "$SYNTH_V" "$PNR_V" 2>&1 | tee "$RUN_DIR/rename.log"
+log "  重命名完成"
+
+# Phase 3: PnR
+log "Phase 3: Place & Route"
+openroad -no_init -no_splash -exit << TCL 2>&1 | tee "$RUN_DIR/pnr.log"
+  read_liberty $LIB_DIR/lib/tt_025C_1v80_pnr.lib
+  read_lef $LIB_DIR/techlef/sky130_fd_sc_hd.tlef
+  read_lef $LIB_DIR/lef/sky130_fd_sc_hd.lef
+  read_verilog $PNR_V
+  link_design "$TOP_MODULE"
+  initialize_floorplan -die_area "0 0 100 100" -core_area "10 10 90 90" -site unithd
+  make_tracks
+  place_pins -hor_layers met1 -ver_layers met2
+  set b [ord::get_db_block]
+  foreach i [\$b getInsts] {
+    set m [\$i getMaster]; set mn [\$m getName]
+    if {[string match "dlymetal*" \$mn] || [string match "lpflow*" \$mn] || [string match "probe*" \$mn]} { continue }
+    place_inst -name [\$i getName] -location "12 12"
+  }
+  detailed_placement; global_route; detailed_route
+  write_def $RUN_DIR/${TOP_MODULE}.def
+  write_verilog $RUN_DIR/${TOP_MODULE}_pnr.v
+  puts "PnR DONE"
+TCL
+log "  PnR 完成"
+
+log "=== 流程完成 ==="
+echo "  网表: $SYNTH_V"
+echo "  PnR:  $PNR_V"
+echo "  DEF:  $RUN_DIR/${TOP_MODULE}.def"
