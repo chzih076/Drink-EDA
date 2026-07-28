@@ -1,35 +1,18 @@
 #!/bin/sh
-# map_synth - 网表 cell 重命名（纯 sh，零依赖）
+# map_synth - netlist cell name mapping for ASIC flow
 IN="$1"; OUT="$2"
-[ -z "$IN" -o -z "$OUT" ] && echo "用法: map_synth <输入> <输出>" && exit 1
-sed \
-  -e 's/\ba2111o\b/a2111o_1/g' -e 's/\ba2111oi\b/a2111oi_0/g' \
-  -e 's/\ba211o\b/a211o_1/g' -e 's/\ba211oi\b/a211oi_1/g' \
-  -e 's/\ba21bo\b/a21bo_1/g' -e 's/\ba21boi\b/a21boi_0/g' \
-  -e 's/\ba21o\b/a21o_1/g' -e 's/\ba21oi\b/a21oi_1/g' \
-  -e 's/\ba221o\b/a221o_1/g' -e 's/\ba221oi\b/a221oi_1/g' \
-  -e 's/\ba222oi\b/a222oi_1/g' -e 's/\ba22o\b/a22o_1/g' \
-  -e 's/\ba22oi\b/a22oi_1/g' -e 's/\ba2bb2o\b/a2bb2o_1/g' \
-  -e 's/\ba2bb2oi\b/a2bb2oi_1/g' -e 's/\ba311o\b/a311o_1/g' \
-  -e 's/\ba311oi\b/a311oi_1/g' -e 's/\ba31o\b/a31o_1/g' \
-  -e 's/\ba31oi\b/a31oi_1/g' -e 's/\ba32o\b/a32o_1/g' \
-  -e 's/\ba32oi\b/a32oi_1/g' -e 's/\ba41o\b/a41o_1/g' \
-  -e 's/\ba41oi\b/a41oi_1/g' \
-  -e 's/\band2\b/and2_1/g' -e 's/\band2b\b/and2b_1/g' \
-  -e 's/\band3\b/and3_1/g' -e 's/\band3b\b/and3b_1/g' \
-  -e 's/\band4\b/and4_1/g' -e 's/\band4b\b/and4b_1/g' -e 's/\band4bb\b/and4bb_1/g' \
-  -e 's/\bbuf\b/buf_1/g' -e 's/\bclkbuf\b/clkbuf_1/g' \
-  -e 's/\bclkinv\b/clkinv_1/g' -e 's/\bclkinvlp\b/clkinv_1/g' \
-  -e 's/\bconb\b/conb_1/g' -e 's/\bdecap\b/decap_12/g' \
-  -e 's/\bdfxtp\b/dfxtp_1/g' -e 's/\bdfrtp\b/dfrtp_1/g' \
-  -e 's/\binv\b/inv_1/g' \
-  -e 's/\bnand2\b/nand2_1/g' -e 's/\bnand2b\b/nand2b_1/g' \
-  -e 's/\bnand3\b/nand3_1/g' -e 's/\bnand3b\b/nand3b_1/g' \
-  -e 's/\bnand4\b/nand4_1/g' -e 's/\bnand4b\b/nand4b_1/g' -e 's/\bnand4bb\b/nand4bb_1/g' \
-  -e 's/\bnor2\b/nor2_1/g' -e 's/\bnor2b\b/nor2b_1/g' \
-  -e 's/\bnor3\b/nor3_1/g' -e 's/\bnor3b\b/nor3b_1/g' \
-  -e 's/\bnor4\b/nor4_1/g' -e 's/\bnor4b\b/nor4b_1/g' -e 's/\bnor4bb\b/nor4bb_1/g' \
-  -e 's/\bxnor2\b/xnor2_1/g' -e 's/\bxnor3\b/xnor3_1/g' \
-  -e 's/\bxor2\b/xor2_1/g' -e 's/\bxor3\b/xor3_1/g' \
-  "$IN" > "$OUT"
-echo "  $(basename $IN): renamed → $(basename $OUT)"
+[ -z "$IN" -o -z "$OUT" ] && exit 1
+awk '
+/^  [a-z]/ && /\(/ {
+    name = $1; inst = $2; gsub(/\(/, "", inst)
+    if (name ~ /_[0-9]$/) { print "  " name " " inst "("; next }
+    if (name ~ /^(input|output|wire|assign|module|endmodule|clk$|led$)/) {
+        print "  " name " " inst "("; next }
+    if (name ~ /^cpu_|^rst_|^irq_|^mem_|^inst_|^dbg_|^gpio_|^uart_|^spi_|^timer_|^sram_|^mmio_|^bonus_/) {
+        print "  " name " " inst "("; next }
+    if (name == "clkinvlp") { print "  clkinv_1 " inst "("; next }
+    if (name ~ /^lpflow_|^probe_|^dlymetal_/) { print "  buf_1 " inst "("; next }
+    print "  " name "_1 " inst "("; next
+}
+{ print }
+' "$IN" > "$OUT"
