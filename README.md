@@ -93,12 +93,24 @@ Drink-EDA/
 └── patches/      ← 补丁文件
 ```
 
-## 容器
+## 项目时间线
+
+- **2026-06 底 ~ 2026-07-26** — loong8 16-bit MCU 自研（ISA 设计 + Rust 参考实现 + Verilog RTL + FPGA 验证）
+- **2026-07-27 ~ 2026-07-28** — Drink-EDA 工具链搭建（PDK 补全、工具编译、包管理器、容器化、loong8 ASIC 版图验证）
+
+## loong8 ASIC 版图验证
+
+内置完整的 loong8 MCU 设计示例，从 RTL 到 DEF 一键跑通：
 
 ```bash
-docker build -f Dockerfile -t drinklinux-eda .
-docker run -it --rm drinklinux-eda:latest
+cd examples/loong8
+lfl config.yaml
 ```
+
+结果：**6527 标准单元，6535 互连线，400×400µm die area**，sky130 工艺。
+
+> loong8 是一颗 16-bit 自定义 ISA MCU，开发周期约 4 周，已完成 FPGA 验证。
+> 本仓库在 48 小时内为其完成了 ASIC 版图流程适配。– H076lik
 
 ## 许可
 
