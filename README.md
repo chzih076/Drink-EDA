@@ -1,9 +1,11 @@
 # Drink-EDA 🍺
 
-**LoongArch 芯片设计 EDA 工具链包管理器**
+**LoongArch 的芯片设计 EDA 工具链**
+**loongArch-Oriented EDA Toolchain for IC Design**
 
-为 DrinkLinux 发行版打造，原生适配龙芯 CPU（LoongArch64），以 `.drink` 包格式分发，由 `drink-pkg` 包管理器声明式安装。
-
+原生适配龙芯 CPU（LoongArch64），以 `.drink` 包格式分发，由 `drink-pkg` 包管理器声明式安装。
+https://gitcode.com/H076lik/Drink-EDA  <--实际仓库地址，包也在里面，github不上传预编译包
+https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packages included; not uploaded to GitHub)
 ---
 
 ## 包一览
@@ -19,6 +21,8 @@
 | `ngspice` | 7.8MB | BSD-3 | ngspice 电路仿真 |
 | `iverilog` | 28KB | GPL-2.0 | Icarus Verilog 仿真 |
 | `sky130-pdk` | 78MB | Apache-2.0 | SkyWater 130nm PDK（HD/MS/HVL/IO/PR） |
+| `drink-pkg` | 7.9MB | GPL-2.0 |来自https://gitcode.com/H076lik/DrinkLinux的包管理器，安全快捷 |
+>drink-pkg 是 DrinkLinux 项目自研的 Rust 包管理器，专为 LoongArch64 离线/轻量场景设计。如需了解其实现原理或贡献代码，请访问上游仓库[https://gitcode.com/H076lik/DrinkLinux]。
 
 ## 状态
 
@@ -36,15 +40,48 @@
 >
 > 详见 [examples/loong8-ws2812-rc1/](examples/loong8-ws2812-rc1/)
 
+![KLayout GDS 版图](examples/loong8-ws2812-rc1/KLayout_examples_loong8-ws2812-rc1.png)
+*GDS 完整版图（188 cells，0 DRC）*
+
+![OpenROAD 布局](examples/loong8-ws2812-rc1/openROAD_examples_loong8-ws2812-rc1.png)  
+*OpenROAD GUI 布局布线视图*
+
 ## 快速开始
 
-### 基础容器（25MB）
+### 安装方式
 
-```bash
-docker import rootfs-eda.tar.gz drinklinux-eda:latest
-docker run -it --rm drinklinux-eda:latest /bin/sh -l
-```
+>把drink-pkg下载下来(在发行版本里面)和其他.drink文件放在同一目录下面，演示：
 
+lik@aosc-lik [ ~ ] ! sudo /home/lik/桌面/drink-pkg install /home/lik/桌面/drink-eda-tools-1.0.drink 
+Installed: drink-eda-tools v1.0
+  /./
+  /usr
+  /usr/local
+  /usr/local/bin
+  /usr/local/bin/lfl
+  /usr/local/bin/openlane-native
+  /usr/local/bin/gen_lib
+  /usr/local/bin/gen_pdk_libs
+  /usr/local/bin/map_synth
+lik@aosc-lik [ ~ ] $ lfl
+用法: lfl <config.yaml>
+lik@aosc-lik [ ~ ] ! map_synth                   # 无参数时静默退出，属正常行为
+lik@aosc-lik [ ~ ] ! 
+
+
+# 按需安装
+drink-pkg install lib-src 
+drink-pkg install yosys 
+drink-pkg install openroad 
+drink-pkg install sky130-pdk 
+......
+
+# 一键流程
+lfl config.yaml
+         
+祝你好运！
+有问题请提Issuse。
+Please open an issue for questions.
 ### 安装 EDA 工具
 
 ```bash
@@ -103,9 +140,8 @@ Drink-EDA/
 
 ## 项目时间线
 
-- **2026-06 底 ~ 2026-07-26** — loong8 16-bit MCU 自研（ISA + RTL + FPGA）
 - **2026-07-27 ~ 2026-07-28** — Drink-EDA 工具链搭建
-- **2026-07-29** — 首个参考设计 RTL→GDSII 验证通过
+- **2026-07-29** — 首个简单且完整的参考设计 RTL→GDSII 验证通过
 
 ## 许可
 

@@ -69,8 +69,13 @@ loong8-ws2812-rc1/
 
 ```bash
 klayout pnr/ws2812b_ctrl.gds &
-# F4 自适应，滚轮缩放，Ctrl+L 图层控制
 ```
+
+![KLayout GDS 版图](KLayout_examples_loong8-ws2812-rc1.png)
+*GDS 完整版图（含晶体管、金属连线）*
+
+![OpenROAD 布局](openROAD_examples_loong8-ws2812-rc1.png)
+*OpenROAD GUI 布局视图（cell 分布与信号连线）*
 
 ## 设计细节
 
