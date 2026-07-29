@@ -240,6 +240,45 @@ iverilog 直接可用。注意：
 
 ---
 
+
+## or-tools 编译（LoongArch）
+
+or-tools 是 Google 的运筹优化库，OpenROAD 的 GPL 模块（全局布局、write_gds）依赖它。
+
+### 依赖
+
+| 依赖 | 用途 | 获取方式 |
+|------|------|----------|
+| abseil-cpp | Google 基础库 | git clone (gitcode 镜像) |
+| protobuf | 序列化 | git clone (gitcode 镜像) |
+| zlib | 压缩 | git clone (gitcode 镜像) |
+| bzip2 | 压缩 | git clone (gitlab) |
+| re2 | 正则 | git clone (gitcode 镜像) |
+| Eigen3 | 线性代数 | git clone (gitlab), 需删 bench/ demos/ |
+| HiGHS | 线性规划 | git clone (gitcode 镜像) |
+
+### 编译命令
+
+```bash
+cd or-tools && mkdir build && cd build
+cmake ..   -DCMAKE_INSTALL_PREFIX=$HOME/.local   -DBUILD_DEPS=ON -DBUILD_PYTHON=OFF   -DBUILD_TESTING=OFF -DBUILD_SAMPLES=OFF   -DFETCHCONTENT_SOURCE_DIR_ABSL=...   -DFETCHCONTENT_SOURCE_DIR_PROTOBUF=...   ... (所有依赖的 FETCHCONTENT_SOURCE_DIR)
+make -j$(nproc)
+make install
+```
+
+### 补丁
+
+or-tools 在 LoongArch 上需要 3 处源码修改（不纳入仓库，仅编译时本地应用）：
+1. `constraint_solver/constraint_solveri.h` — 添加 `__loongarch64` 到 64 位检测
+2. `base/source_location.h` — 检测 abseil 已提供时跳过自带定义
+3. 各依赖的 CMakeLists 中注释掉有问题的 subdirectory
+
+### 注意事项
+
+- 不联网编译需预先 clone 所有依赖到 _deps/ 目录
+- GitHub 不可用时使用 gitcode 镜像
+- Eigen 必须删除 bench/ 和 demos/ 目录
+
 ## 十、经验法则
 
 | 场景 | 建议 |

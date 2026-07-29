@@ -15,7 +15,7 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 | `lib-src` | 1.5MB | Apache-2.0 | 公共运行时（libstdc++/libm/libz/Tcl） |
 | `drink-eda-tools` | 5KB | Apache-2.0 | `lfl` 流程控制器 + `map_synth` 网表重命名 |
 | `yosys` | 30MB | ISC | Yosys 综合 + ABC（hash 已修） |
-| `openroad` | 70MB | BSD-3 | OpenROAD 布局布线（read_lef 已修） |
+| `openroad` | 113MB | BSD-3 | OpenROAD 布局布线（+GPL全局布局, read_lef已修） |
 | `klayout` | 269MB | GPL-3.0 | KLayout 版图编辑（standalone 无 Python） |
 | `magic` | 6.6MB | BSD-3 | Magic VLSI 版图 |
 | `ngspice` | 7.8MB | BSD-3 | ngspice 电路仿真 |
