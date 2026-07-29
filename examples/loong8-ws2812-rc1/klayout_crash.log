@@ -1,0 +1,13 @@
+Signal number: 11
+Address: 0xb1db8
+Program Version: KLayout 0.30.9 (2026-07-28 r025a30ab2)
+
+Backtrace:
+/home/lik/klayout/bin-release/libklayout_lay.so.0 +0x308e94 lay::enable_signal_handler_gui(bool) [??:?]
+linux-vdso.so.1 +0xa3c __vdso_rt_sigreturn
+/usr/lib/libc.so.6 +0xaa3d0 __libc_free
+/usr/lib/libc.so.6 +0x3a5b0
+/usr/lib/libc.so.6 +0x3a754
+/usr/lib/libc.so.6 +0x1d968
+/usr/lib/libc.so.6 +0x1da6c __libc_start_main
+/home/lik/klayout/bin-release/klayout +0x38f8

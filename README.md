@@ -20,6 +20,22 @@
 | `iverilog` | 28KB | GPL-2.0 | Icarus Verilog 仿真 |
 | `sky130-pdk` | 78MB | Apache-2.0 | SkyWater 130nm PDK（HD/MS/HVL/IO/PR） |
 
+## 状态
+
+> **2026-07-29: 完整 RTL→GDSII 流程验证通过** ✅
+>
+> 首个参考设计已完成端到端验证：
+>
+> | 阶段 | 工具 | 结果 |
+> |------|------|------|
+> | RTL | Verilog | WS2812B LED 呼吸灯控制器 |
+> | 逻辑综合 | Yosys 0.67+ | 188 cells（50 DFF + 138 combo） |
+> | 布局布线 | OpenROAD 26Q3 | 0 DRC 违例，100×100μm |
+> | GDS 合并 | KLayout + Python | 晶体管级完整版图 |
+> | 一键流程 | `./build.sh` | ~70 秒 |
+>
+> 详见 [examples/loong8-ws2812-rc1/](examples/loong8-ws2812-rc1/)
+
 ## 快速开始
 
 ### 基础容器（25MB）
@@ -39,28 +55,11 @@ drink-pkg install openroad-26Q3.drink
 drink-pkg install sky130-pdk-1.0.drink
 ```
 
-### 运行 RTL→GDSII 流程
+### 运行参考设计
 
 ```bash
-# 创建设计
-cat > counter.v << 'EOF'
-module counter(input clk, input rst_n, output reg [7:0] count);
-  always @(posedge clk or negedge rst_n)
-    if (!rst_n) count <= 0; else count <= count + 1;
-endmodule
-EOF
-
-# 创建配置文件
-cat > config.yaml << 'EOF'
-DESIGN_NAME: "counter"
-VERILOG_FILES: "counter.v"
-TOP_MODULE: "counter"
-CLOCK_PORT: "clk"
-CLOCK_PERIOD: 10
-EOF
-
-# 一键流程
-lfl config.yaml
+cd /opt/Drink-EDA/examples/loong8-ws2812-rc1
+./build.sh    # 一键 RTL→GDSII
 ```
 
 ## 项目结构
@@ -82,35 +81,31 @@ Drink-EDA/
 │   ├── openroad_readlef_update_lib.patch
 │   ├── gen_pdk_libs.patch
 │   └── ...
-├── scripts/      ← 流程工具（纯 sh，零 Python）
+├── scripts/      ← 流程工具（纯 sh）
 │   ├── lfl              ← 流程控制器
 │   ├── map_synth        ← 网表重命名
-│   ├── gen_pdk_libs     ← PDK 维护（sh + awk）
+│   ├── gen_pdk_libs     ← PDK 维护
 │   ├── gen_lib          ← Liberty 生成
 │   ├── openlane-native  ← 一键 RTL→PnR
-│   └── gen_manifests.py ← 构建机专用（不进容器）
+│   └── gen_manifests.py ← 构建机专用
+├── examples/     ← 参考设计
+│   └── loong8-ws2812-rc1/  ← WS2812B LED 控制器
+│       ├── build.sh        ← 一键全流程
+│       ├── rtl/            ← RTL 源码
+│       ├── synth/          ← 综合输出
+│       ├── pnr/            ← 版图文件（DEF+GDS）
+│       └── log/            ← 运行日志
 ├── docs/         ← 编译指南
-└── patches/      ← 补丁文件
+└── tools/        ← 独立工具
+    ├── gdsmerge/           ← C 版 GDS 合并（开发中）
+    └── gdsmerge-rs/        ← Rust 版 GDS 合并（开发中）
 ```
 
 ## 项目时间线
 
-- **2026-06 底 ~ 2026-07-26** — loong8 16-bit MCU 自研（ISA 设计 + Rust 参考实现 + Verilog RTL + FPGA 验证）
-- **2026-07-27 ~ 2026-07-28** — Drink-EDA 工具链搭建（PDK 补全、工具编译、包管理器、容器化、loong8 ASIC 版图验证）
-
-## loong8 ASIC 版图验证
-
-内置完整的 loong8 MCU 设计示例，从 RTL 到 DEF 一键跑通：
-
-```bash
-cd examples/loong8
-lfl config.yaml
-```
-
-结果：**6527 标准单元，6535 互连线，400×400µm die area**，sky130 工艺。
-
-> loong8 是一颗 16-bit 自定义 ISA MCU，开发周期约 4 周，已完成 FPGA 验证。
-> 本仓库在 48 小时内为其完成了 ASIC 版图流程适配。– H076lik
+- **2026-06 底 ~ 2026-07-26** — loong8 16-bit MCU 自研（ISA + RTL + FPGA）
+- **2026-07-27 ~ 2026-07-28** — Drink-EDA 工具链搭建
+- **2026-07-29** — 首个参考设计 RTL→GDSII 验证通过
 
 ## 许可
 

@@ -1,0 +1,83 @@
+# loong8-ws2812-rc1
+
+WS2812B 智能 LED 控制器硬核实现 —— loong8 体系结构的专用硬件衍生
+
+## 概述
+
+不可编程的 WS2812B 彩灯控制器，内建紫色呼吸灯效果。纯硬件状态机替代"CPU+固件"方案，188 个标准单元，0 DRC 违例。
+
+## 设计规格
+
+| 项目 | 参数 |
+|------|------|
+| 功能 | WS2812B 呼吸灯驱动（紫色渐变） |
+| 工艺 | SkyWater sky130A (130nm) |
+| 时钟 | 50MHz → 800KHz WS2812B 时序 |
+| 面积 | 100 × 100 μm |
+| 标准单元 | 188 （50 DFF + 138 组合） |
+| 布线 | 0 DRC 违例 ✅ |
+| 全流程 | ~70 秒 |
+
+## 快速开始
+
+```bash
+cd /home/lik/Drink-EDA/examples/loong8-ws2812-rc1
+./build.sh          # 一键全流程
+./build.sh gds      # 仅 GDS（需要 python3 + klayout）
+./build.sh clean    # 清理
+```
+
+## 目录
+
+```
+loong8-ws2812-rc1/
+├── build.sh              # 一键构建（自动检测工具链）
+├── rtl/ws2812_led.v      # RTL 源码
+├── synth/                # Yosys + ABC 综合输出
+├── scripts/route.tcl     # OpenROAD 布线脚本
+├── pnr/
+│   ├── ws2812_routed.def # 布线后版图（0 DRC）
+│   ├── ws2812b_ctrl.gds  # 完整 GDS（晶体管+金属）
+│   └── ws2812_drc.rpt    # DRC 报告（空=0违例）
+├── log/route.log         # 完整布线日志
+└── README.md
+```
+
+## 工具链
+
+| 工具 | 用途 | 依赖 |
+|------|------|------|
+| Yosys 0.67+ | 逻辑综合 | 需 LoongArch ABC SCL hash 补丁 |
+| OpenROAD 26Q3 | 布局布线 | 禁用 GPL 模块 |
+| KLayout Python API | GDS 合并（含晶体管） | python3 + klayout 包 |
+| strm2gds (KLayout) | LEF 抽象 GDS（无晶体管） | 无额外依赖 |
+| map_synth | ABC 网表 → PnR 网表重命名 | 无 |
+| sky130 PDK | SkyWater 130nm 工艺库 | open_pdks 安装 |
+
+**GDS 生成说明**：`pnr/ws2812b_ctrl.gds` 为预生成文件，含完整晶体管几何。
+开发机上 `./build.sh gds` 调用 Python+KLayout API 重新生成。
+容器环境无 Python 时使用预生成文件即可。
+
+## 布线收敛
+
+```
+迭代 0:  370 → 迭代 4:  0 violations  ✅
+线长: 12,449 μm  通孔: 1,804  runtime: 68s
+```
+
+## 查看版图
+
+```bash
+klayout pnr/ws2812b_ctrl.gds &
+# F4 自适应，滚轮缩放，Ctrl+L 图层控制
+```
+
+## 设计细节
+
+- **呼吸灯**: 1ms 步进，0→255 循环，红蓝同步 → 紫色
+- **WS2812B 时序**: Bit0 = 3+13 周期, Bit1 = 9+7 周期 @ 800KHz
+- **数据率**: 800 Kbps
+
+## 许可证
+
+Apache License 2.0 — 详见 [LICENSE](../../LICENSE)
