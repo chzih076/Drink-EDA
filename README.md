@@ -51,7 +51,7 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 ### 安装方式
 
 >把drink-pkg下载下来(在发行版本里面)和其他.drink文件放在同一目录下面，演示：
-
+```bash
 lik@aosc-lik [ ~ ] ! sudo /home/lik/桌面/drink-pkg install /home/lik/桌面/drink-eda-tools-1.0.drink 
 Installed: drink-eda-tools v1.0
   /./
@@ -82,6 +82,8 @@ lfl config.yaml
 祝你好运！
 有问题请提Issuse。
 Please open an issue for questions.
+```
+
 ### 安装 EDA 工具
 
 ```bash
