@@ -12,7 +12,7 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 
 | 项目 | 要求 |
 |------|------|
-| 架构 | `loongarch64`（龙芯 3A5000+/3C5000+） |
+| 架构 | `loongarch64`（推荐 3B6000，兼容 3A5000/3C5000+） |
 | 内核 | ≥ 5.19.0 |
 | glibc | ≥ 2.38 |
 | 运行时 | `lib-src-1.0.drink`（libstdc++/libm/libz/Tcl） |
