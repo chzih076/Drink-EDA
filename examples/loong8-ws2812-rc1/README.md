@@ -71,6 +71,9 @@ loong8-ws2812-rc1/
 klayout pnr/ws2812b_ctrl.gds &
 ```
 
+![GDS3D 3D 芯片渲染](GDS3D_examples_loong8-ws2812-rc1.png)
+*GDS3D 3D 立体渲染（295,692 个三角面）*
+
 ![KLayout GDS 版图](KLayout_examples_loong8-ws2812-rc1.png)
 *GDS 完整版图（含晶体管、金属连线）*
 

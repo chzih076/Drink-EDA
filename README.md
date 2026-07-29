@@ -22,6 +22,7 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 | `iverilog` | 28KB | GPL-2.0 | Icarus Verilog 仿真 |
 | `sky130-pdk` | 78MB | Apache-2.0 | SkyWater 130nm PDK（HD/MS/HVL/IO/PR） |
 | `drink-pkg` | 7.9MB | GPL-2.0 |来自https://gitcode.com/H076lik/DrinkLinux的包管理器，安全快捷 |
+| `gds3d-1.8.drink` | 1.7MB | GPL-2.0 |3D看你的gds版图|
 >drink-pkg 是 DrinkLinux 项目自研的 Rust 包管理器，专为 LoongArch64 离线/轻量场景设计。如需了解其实现原理或贡献代码，请访问上游仓库[https://gitcode.com/H076lik/DrinkLinux]。
 
 ## 状态
@@ -39,6 +40,9 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 > | 一键流程 | `./build.sh` | ~70 秒 |
 >
 > 详见 [examples/loong8-ws2812-rc1/](examples/loong8-ws2812-rc1/)
+
+![GDS3D 3D 芯片渲染](examples/loong8-ws2812-rc1/GDS3D_examples_loong8-ws2812-rc1.png)
+*GDS3D 3D 立体渲染（295,692 个三角面）*
 
 ![KLayout GDS 版图](examples/loong8-ws2812-rc1/KLayout_examples_loong8-ws2812-rc1.png)
 *GDS 完整版图（188 cells，0 DRC）*
@@ -100,6 +104,11 @@ drink-pkg install sky130-pdk-1.0.drink
 cd /opt/Drink-EDA/examples/loong8-ws2812-rc1
 ./build.sh    # 一键 RTL→GDSII
 ```
+>另外GDS3D \
+     -p /usr/local/share/gds3d/techfiles/sky130.txt \
+     -i XXX.gds
+
+>#_#
 
 ## 项目结构
 
