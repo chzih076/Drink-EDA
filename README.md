@@ -8,6 +8,16 @@ https://gitcode.com/H076lik/Drink-EDA  <--实际仓库地址，包也在里面�
 https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packages included; not uploaded to GitHub)
 ---
 
+## 系统要求
+
+| 项目 | 要求 |
+|------|------|
+| 架构 | `loongarch64`（龙芯 3A5000+/3C5000+） |
+| 内核 | ≥ 5.19.0 |
+| glibc | ≥ 2.38 |
+| 运行时 | `lib-src-1.0.drink`（libstdc++/libm/libz/Tcl） |
+| 存储 | 约 600MB（全工具链 + PDK） |
+
 ## 包一览
 
 | 包 | 大小 | 许可证 | 说明 |
