@@ -83,9 +83,7 @@ read_verilog $SYNTH/ws2812_pnr.v
 link_design "ws2812b_ctrl"
 initialize_floorplan -die_area "0 0 100 100" -core_area "10 10 90 90" -site unithd
 make_tracks; place_pins -hor_layers met1 -ver_layers met2
-set b [ord::get_db_block]; set x 15; set y 15
-foreach i [\$b getInsts] { place_inst -name [\$i getName] -location "\$x \$y"
-  set x [expr {\$x + 5}]; if {\$x > 85} { set x 15; set y [expr {\$y + 6}] } }
+global_placement
 detailed_placement
 add_global_connection -net VPWR -inst_pattern {.*} -pin_pattern {VPWR} -power
 add_global_connection -net VGND -inst_pattern {.*} -pin_pattern {VGND} -ground
