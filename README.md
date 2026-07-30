@@ -66,6 +66,19 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 
 ### 安装方式
 
+安装后各工具路径：
+
+| 包 | 安装路径 |
+|----|----------|
+| `openroad` | `/usr/local/bin/openroad` |
+| `yosys` | `/usr/local/bin/yosys` + `/usr/local/bin/yosys-abc` |
+| `klayout` | `/usr/local/bin/klayout` + **`/usr/local/bin/strm2gds`** |
+| `drink-eda-tools` | `/usr/local/bin/{lfl,map_synth,def2gds,gen_lib,...}` |
+| `sky130-pdk` | `/usr/local/share/pdk/sky130A/` |
+| `lib-src` | `/usr/lib/libstdc++.so.6` 等运行时 |
+
+所有工具安装后都在 `PATH` 中，直接运行即可。无需设环境变量。
+
 >把drink-pkg下载下来(在发行版本里面)和其他.drink文件放在同一目录下面，演示：
 ```bash
 lik@aosc-lik [ ~ ] ! sudo /home/lik/桌面/drink-pkg install /home/lik/桌面/drink-eda-tools-1.0.drink 
