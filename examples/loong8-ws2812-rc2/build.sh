@@ -142,7 +142,7 @@ TCL
 
     $OPENROAD -no_init -no_splash -exit "$LOG/pnr_run.tcl" 2>&1 | tee "$LOG/route.log"
 
-    violations=$(grep "Number of violations" "$LOG/route.log" | tail -1 | grep -o '[0-9]*')
+    violations=$(grep -oP 'violations\s*=\s*\K[0-9]+' "$LOG/route.log" | tail -1)
     echo "  DRC 违例: ${violations:-0}"
     ;;&
 
@@ -214,7 +214,7 @@ all)
     echo "  loong8-ws2812-rc2 构建完成"
     echo "  RTL:       $RTL/ws2812_led.v"
     echo "  PDK:       $PDK"
-    drc_val=$(grep "Number of violations" "$LOG/route.log" 2>/dev/null | tail -1 | grep -o '[0-9]*')
+    drc_val=$(grep -oP 'violations\s*=\s*\K[0-9]+' "$LOG/route.log" 2>/dev/null | tail -1)
     echo "  DRC:       ${drc_val:-N/A}"
     gds=$(ls -lh "$PNR/ws2812b_ctrl.gds" 2>/dev/null | awk '{print $5}')
     echo "  GDS:       ${gds:-N/A}"

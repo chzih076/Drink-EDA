@@ -126,7 +126,7 @@ TCL
 
 $OPENROAD -no_init -no_splash -exit "$LOG_DIR/pnr_flow.tcl" 2>&1 | tee "$LOG_DIR/route.log"
 
-violations=$(grep "Number of violations" "$LOG_DIR/route.log" | tail -1 | grep -o '[0-9]*')
+violations=$(grep -oP 'violations\s*=\s*\K[0-9]+' "$LOG_DIR/route.log" | tail -1)
 echo "  DRC 违例: ${violations:-0}"
 
 # ─── 3. GDS ──────────────────────────────────────────────
