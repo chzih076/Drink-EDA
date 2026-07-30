@@ -31,7 +31,8 @@
 | libstdc++ | ≥ GCC 13 (随系统自带) |
 | Python | ❌ **不需要**（所有工具零 Python 依赖） |
 
-> **提示**：Verilator、GTKWave 等工具可以直接用系统包管理器安装：`oma install verilator gtkwave`
+> **提示**：Verilator、GTKWave 等工具可直接用系统包管理器安装：  
+> `oma install verilator gtkwave`（AOSC OS）或 `apt install verilator gtkwave`（Debian/Ubuntu）
 
 ### 发行版
 
