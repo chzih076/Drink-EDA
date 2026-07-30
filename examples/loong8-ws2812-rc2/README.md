@@ -32,15 +32,28 @@ cd /home/lik/Drink-EDA/examples/loong8-ws2812-rc2
 ```
 loong8-ws2812-rc2/
 ├── build.sh              # 一键构建（自动检测工具链）
-├── rtl/ws2812_led.v      # RTL 源码
-├── synth/                # Yosys + ABC 综合输出
-├── scripts/route.tcl     # OpenROAD 布线脚本
+├── Makefile              # make 快捷入口
+├── README.md             # 本文件
+├── EXPERIENCE.md         # 开发经验总结
+├── rtl/
+│   └── ws2812_led.v      # RTL 源码
+├── scripts/
+│   ├── pnr_flow.tcl      # OpenROAD PnR 脚本
+│   └── def2gds.sh        # DEF→GDS 转换
+├── synth/
+│   ├── ws2812_synth.v    # 综合输出
+│   └── ws2812_pnr.v      # 映射后网表
 ├── pnr/
 │   ├── ws2812_routed.def # 布线后版图（0 DRC）
-│   ├── ws2812b_ctrl.gds  # 完整 GDS（晶体管+金属）
-│   └── ws2812_drc.rpt    # DRC 报告（空=0违例）
-├── log/route.log         # 完整布线日志
-└── README.md
+│   ├── ws2812b_ctrl.gds  # 完整 GDS（324K，含晶体管）
+│   └── ws2812_drc.rpt    # DRC 报告（空 = 0 违例）
+├── log/
+│   ├── synth.log         # 综合日志
+│   └── route.log         # 布线日志
+└── sim/
+    ├── ws2812b_tb.v      # 测试平台
+    ├── ws2812b_tb2.v
+    └── check_sim.v       # 仿真检查
 ```
 
 ## 工具链

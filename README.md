@@ -151,18 +151,27 @@ Drink-EDA/
 │   └── drink-eda-tools.toml
 ├── patches/      ← LoongArch 适配补丁
 │   ├── abc_scl_loongarch_hash_fix.patch
+│   ├── abc_CMakeLists.patch
+│   ├── sta_CMakeLists.patch
+│   ├── openroad_cmake.patch
 │   ├── openroad_readlef_update_lib.patch
-│   ├── gen_pdk_libs.patch
-│   └── ...
-├── scripts/      ← 流程工具（纯 sh）
-│   ├── lfl              ← 流程控制器
-│   ├── map_synth        ← 网表重命名
-│   ├── gen_pdk_libs     ← PDK 维护
-│   ├── gen_lib          ← Liberty 生成
-│   ├── openlane-native  ← 一键 RTL→PnR
-│   └── gen_manifests.py ← 构建机专用
+│   ├── klayout_suffix_match.patch
+│   ├── allocator-patch.patch
+│   └── cut_CMakeLists.patch
+├── scripts/      ← 流程工具（纯 sh，零 Python）
+│   ├── flow.sh           ← 通用 RTL→GDSII 流程
+│   ├── def2gds.sh        ← DEF→GDS 转换（sky130 图层映射）
+│   ├── pnr_flow.tcl      ← OpenROAD PnR 模板
+│   ├── map_synth         ← 网表重命名
+│   ├── gen_pdk_libs      ← PDK 维护
+│   ├── gen_lib           ← Liberty 生成
+│   ├── lfl               ← 流程控制器
+│   ├── openlane-native   ← 一键 RTL→PnR
+│   ├── openroad_route.tcl
+│   ├── librelane_corner.tcl
+│   └── librelane_io.tcl
 ├── examples/     ← 参考设计
-│   └── loong8-ws2812-rc2/  ← WS2812B LED 控制器
+│   └── loong8-ws2812-rc2/  ← WS2812B LED 控制器 (v1.0-rc2)
 │       ├── build.sh        ← 一键全流程
 │       ├── rtl/            ← RTL 源码
 │       ├── synth/          ← 综合输出

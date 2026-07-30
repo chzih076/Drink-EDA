@@ -208,7 +208,16 @@ OPENROAD_PATH=/opt/openroad ./build.sh
 
 工具搜索顺序：`$TOOL_PATH` 环境变量 → `$PATH` → `/usr/local/bin/<tool>`
 
-### 4.4 查看结果
+### 4.4 使用通用流程脚本
+
+对于自己的设计，可以直接用通用脚本：
+
+```bash
+# 用法: scripts/flow.sh <顶层模块> <rtl文件> [宽um] [高um]
+scripts/flow.sh top rtl/top.v 100 100
+```
+
+它会自动完成综合→布局布线→GDS 全流程，结果输出在 `synth/`、`pnr/`、`log/` 目录。
 
 ```bash
 # 3D 查看（需 GDS3D）
