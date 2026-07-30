@@ -437,6 +437,7 @@ QT_QPA_PLATFORM=xcb QT_PLUGIN_PATH=/usr/lib/qt5/plugins openroad -gui
 | drink-eda-tools | 1.0 | 6 KB |
 | iverilog | 12.0 | 28 KB |
 | magic | 8.3 | 6.5 MB |
+| netgen | 1.5.323 | 593 KB |
 | ngspice | 46 | 7.8 MB |
 | gds3d | 1.8 | 1.6 MB |
 

@@ -34,6 +34,7 @@
 | `openroad` | 119MB | BSD-3 | OpenROAD 布局布线（GPL+or-tools+LTO, read_lef已修） |
 | `klayout` | 114MB | GPL-3.0 | KLayout 版图工具（strm2gds 含后缀匹配，零 Python） |
 | `magic` | 11MB | BSD-3 | Magic VLSI 版图（OpenGL+NULL 双驱动） |
+| `netgen` | 593KB | GPL-2.0 | Netgen LVS 版图比对 |
 | `ngspice` | 7.8MB | BSD-3 | ngspice 电路仿真 |
 | `iverilog` | 28KB | GPL-2.0 | Icarus Verilog 仿真 |
 | `sky130-pdk` | 78MB | Apache-2.0 | SkyWater 130nm PDK（含 .mag 视图） |
@@ -150,6 +151,7 @@ Drink-EDA/
 │   ├── openroad.toml
 │   ├── klayout.toml
 │   ├── magic.toml
+│   ├── netgen.toml
 │   ├── ngspice.toml
 │   ├── iverilog.toml
 │   ├── sky130-pdk.toml
