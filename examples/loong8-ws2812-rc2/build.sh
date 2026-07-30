@@ -1,5 +1,5 @@
 #!/bin/sh
-# build.sh — loong8-ws2812-rc1 完整 RTL→GDSII 构建脚本
+# build.sh — loong8-ws2812-rc2 完整 RTL→GDSII 构建脚本
 # 用法: ./build.sh [synth|pnr|gds|all|clean]
 # 目标环境: LoongArch64 Linux, AOSC OS
 #
@@ -211,7 +211,7 @@ clean)
 all)
     echo ""
     echo "═══════════════════════════════════════"
-    echo "  loong8-ws2812-rc1 构建完成"
+    echo "  loong8-ws2812-rc2 构建完成"
     echo "  RTL:       $RTL/ws2812_led.v"
     echo "  PDK:       $PDK"
     drc_val=$(grep "Number of violations" "$LOG/route.log" 2>/dev/null | tail -1 | grep -o '[0-9]*')

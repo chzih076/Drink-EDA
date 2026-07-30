@@ -1,4 +1,4 @@
-# loong8-ws2812-rc1 开发经验总结
+# loong8-ws2812-rc2 开发经验总结
 
 > 从 RTL 到 GDSII 完整 EDA 流程的踩坑记录
 > 2026-07-29, Drink-EDA Project

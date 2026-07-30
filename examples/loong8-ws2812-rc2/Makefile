@@ -1,4 +1,4 @@
-# loong8-ws2812-rc1 — WS2812B LED 控制器
+# loong8-ws2812-rc2 — WS2812B LED 控制器
 # 完整 RTL→GDSII 流程演示（零 Python 依赖）
 #
 # 快速开始:  ./build.sh          # 一键全流程

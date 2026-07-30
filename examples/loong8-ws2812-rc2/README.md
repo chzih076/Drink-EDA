@@ -1,4 +1,4 @@
-# loong8-ws2812-rc1
+# loong8-ws2812-rc2
 
 WS2812B 智能 LED 控制器硬核实现 —— loong8 体系结构的专用硬件衍生
 
@@ -21,7 +21,7 @@ WS2812B 智能 LED 控制器硬核实现 —— loong8 体系结构的专用硬�
 ## 快速开始
 
 ```bash
-cd /home/lik/Drink-EDA/examples/loong8-ws2812-rc1
+cd /home/lik/Drink-EDA/examples/loong8-ws2812-rc2
 ./build.sh          # 一键全流程
 ./build.sh gds      # 仅 GDS（需要 python3 + klayout）
 ./build.sh clean    # 清理
@@ -30,7 +30,7 @@ cd /home/lik/Drink-EDA/examples/loong8-ws2812-rc1
 ## 目录
 
 ```
-loong8-ws2812-rc1/
+loong8-ws2812-rc2/
 ├── build.sh              # 一键构建（自动检测工具链）
 ├── rtl/ws2812_led.v      # RTL 源码
 ├── synth/                # Yosys + ABC 综合输出
@@ -71,13 +71,13 @@ loong8-ws2812-rc1/
 klayout pnr/ws2812b_ctrl.gds &
 ```
 
-![GDS3D 3D 芯片渲染](GDS3D_examples_loong8-ws2812-rc1.png)
+![GDS3D 3D 芯片渲染](GDS3D_examples_loong8-ws2812-rc2.png)
 *GDS3D 3D 立体渲染（295,692 个三角面）*
 
-![KLayout GDS 版图](KLayout_examples_loong8-ws2812-rc1.png)
+![KLayout GDS 版图](KLayout_examples_loong8-ws2812-rc2.png)
 *GDS 完整版图（含晶体管、金属连线）*
 
-![OpenROAD 布局](openROAD_examples_loong8-ws2812-rc1.png)
+![OpenROAD 布局](openROAD_examples_loong8-ws2812-rc2.png)
 *OpenROAD GUI 布局视图（cell 分布与信号连线）*
 
 ## 设计细节

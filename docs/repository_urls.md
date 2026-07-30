@@ -108,4 +108,4 @@ git submodule update --init --recursive
 # 编译: cmake .. -DENABLE_GPL=ON ...
 ```
 
-> 📌 完整搭建过程见 `examples/loong8-ws2812-rc1/EXPERIENCE.md`
+> 📌 完整搭建过程见 `examples/loong8-ws2812-rc2/EXPERIENCE.md`

@@ -1,4 +1,4 @@
-# pnr_flow.tcl — OpenROAD PnR script for loong8-ws2812-rc1
+# pnr_flow.tcl — OpenROAD PnR script for loong8-ws2812-rc2
 # Usage: openroad -no_init -no_splash -exit pnr_flow.tcl
 #
 # PDK paths (edit these for your environment)

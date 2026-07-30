@@ -4,7 +4,7 @@
  |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
  |  Distributed under an ISC-like license, type "license" to see terms        |
  \----------------------------------------------------------------------------/
- Yosys 0.67+ (git sha1 2c28591b8-dirty, Release, GNU /usr/bin/c++ 15.3.0)
+ Yosys 0.67+ (git sha1 2c28591b8-dirty, GNU /usr/bin/c++ 15.3.0)
 
 -- Running command `
       read_verilog rtl/ws2812_led.v;
@@ -706,7 +706,7 @@ Replacing 10 occurrences of constant undef bits with constant zero bits
 2.24.1.1. Executed ABC.
 Extracted 252 gates and 303 wires to a netlist network with 49 inputs and 46 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
-ABC: UC Berkeley, ABC 1.01 (compiled Jul 28 2026 05:20:15)
+ABC: UC Berkeley, ABC 1.01 (compiled Jul 30 2026 00:17:08)
 ABC: abc 01> empty
 ABC: abc 01> source <abc-temp-dir>/abc.script
 ABC: + read_blif <abc-temp-dir>/input.blif 
@@ -845,16 +845,16 @@ Mapping DFF cells in module `\ws2812b_ctrl':
 4. Executing ABC pass (technology mapping using ABC).
 
 4.1. Extracting gate netlist of module `\ws2812b_ctrl' to `<abc-temp-dir>/input.blif'..
-ABC: using cached merged SCL: /tmp/yosys-liberty-scl-cache/yosys_merged_5d78b4ec.scl (1 files)
+ABC: using cached merged SCL: /tmp/yosys-liberty-scl-cache/yosys_merged_67b1009a.scl (1 files)
 
 4.1.1. Executed ABC.
 Extracted 186 gates and 236 wires to a netlist network with 50 inputs and 42 outputs.
 Running ABC script: <abc-temp-dir>/abc.script
-ABC: UC Berkeley, ABC 1.01 (compiled Jul 28 2026 05:20:15)
+ABC: UC Berkeley, ABC 1.01 (compiled Jul 30 2026 00:17:08)
 ABC: abc 01> empty
 ABC: abc 01> source <abc-temp-dir>/abc.script
 ABC: + read_blif <abc-temp-dir>/input.blif 
-ABC: + read_scl /tmp/yosys-liberty-scl-cache/yosys_merged_5d78b4ec.scl 
+ABC: + read_scl /tmp/yosys-liberty-scl-cache/yosys_merged_67b1009a.scl 
 ABC: Warning: Detected 5 multi-output cells (for example, "fa").
 ABC: + strash 
 ABC: + &get -n 
@@ -985,6 +985,6 @@ Optimizing module ws2812b_ctrl.
 6.2. Executing DEMUXMAP pass.
 Dumping module `\ws2812b_ctrl'.
 
-End of script. Logfile hash: f2a1528d1b, time: 0.41s, user: 0.18s, system: 0.01s, MEM: 37.27 MB peak
-Yosys 0.67+ (git sha1 2c28591b8-dirty, Release, GNU /usr/bin/c++ 15.3.0)
-Time spent: 58% 2x abc (0 sec), 8% 1x techmap (0 sec), ...
+End of script. Logfile hash: 547e48ab9e, time: 2.98s, user: 2.05s, system: 0.02s, MEM: 81.56 MB peak
+Yosys 0.67+ (git sha1 2c28591b8-dirty, GNU /usr/bin/c++ 15.3.0)
+Time spent: 33% 2x abc (0 sec), 13% 1x techmap (0 sec), ...

@@ -51,15 +51,15 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 > | GDS 合并 | KLayout + Python | 晶体管级完整版图 |
 > | 一键流程 | `./build.sh` | ~70 秒 |
 >
-> 详见 [examples/loong8-ws2812-rc1/](examples/loong8-ws2812-rc1/)
+> 详见 [examples/loong8-ws2812-rc2/](examples/loong8-ws2812-rc2/)
 
-![GDS3D 3D 芯片渲染](examples/loong8-ws2812-rc1/GDS3D_examples_loong8-ws2812-rc1.png)
+![GDS3D 3D 芯片渲染](examples/loong8-ws2812-rc2/GDS3D_examples_loong8-ws2812-rc2.png)
 *GDS3D 3D 立体渲染（295,692 个三角面）*
 
-![KLayout GDS 版图](examples/loong8-ws2812-rc1/KLayout_examples_loong8-ws2812-rc1.png)
+![KLayout GDS 版图](examples/loong8-ws2812-rc2/KLayout_examples_loong8-ws2812-rc2.png)
 *GDS 完整版图（188 cells，0 DRC）*
 
-![OpenROAD 布局](examples/loong8-ws2812-rc1/openROAD_examples_loong8-ws2812-rc1.png)  
+![OpenROAD 布局](examples/loong8-ws2812-rc2/openROAD_examples_loong8-ws2812-rc2.png)  
 *OpenROAD GUI 布局布线视图*
 
 ## 快速开始
@@ -126,7 +126,7 @@ drink-pkg install sky130-pdk-1.0.drink
 ### 运行参考设计
 
 ```bash
-cd /opt/Drink-EDA/examples/loong8-ws2812-rc1
+cd /opt/Drink-EDA/examples/loong8-ws2812-rc2
 ./build.sh    # 一键 RTL→GDSII
 ```
 >另外GDS3D \
@@ -162,7 +162,7 @@ Drink-EDA/
 │   ├── openlane-native  ← 一键 RTL→PnR
 │   └── gen_manifests.py ← 构建机专用
 ├── examples/     ← 参考设计
-│   └── loong8-ws2812-rc1/  ← WS2812B LED 控制器
+│   └── loong8-ws2812-rc2/  ← WS2812B LED 控制器
 │       ├── build.sh        ← 一键全流程
 │       ├── rtl/            ← RTL 源码
 │       ├── synth/          ← 综合输出
