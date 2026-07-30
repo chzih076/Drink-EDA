@@ -1,63 +1,11 @@
-[[packages]]
-name = "drink-eda-tools"
-version = "1.0"
-filename = "drink-eda-tools-1.0.drink"
-sha256 = "8dd0787dae393bb790f3f2dbe5d83d60e1ce8fa7da28a830a6dad0a47726b538"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/drink-eda-tools-1.0.drink"
-
-[[packages]]
-name = "iverilog"
-version = "12.0"
-filename = "iverilog-12.0.drink"
-sha256 = "e3e0df6d45a4c92180793af308965deb850c8397979364cb04b7e438240c45c7"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/iverilog-12.0.drink"
-
-[[packages]]
-name = "klayout"
-version = "0.30.9"
-filename = "klayout-0.30.9.drink"
-sha256 = "5e364bca24318ebea2cb07670f7e5d365f1a8e50cc23e2464e6296a16f539e97"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/klayout-0.30.9.drink"
-
-[[packages]]
-name = "lib-src"
-version = "1.0"
-filename = "lib-src-1.0.drink"
-sha256 = "53e338402ae2132cbe0baf82e7ad45ea1506ab7bee2b7f86c081e6fe9483a9ce"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/lib-src-1.0.drink"
-
-[[packages]]
-name = "magic"
-version = "8.3"
-filename = "magic-8.3.drink"
-sha256 = "a126778fc7a9c3ef0540dcfc4bf68d8a69886bbf347a9e3c4e8da6c9042cd842"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/magic-8.3.drink"
-
-[[packages]]
-name = "ngspice"
-version = "46"
-filename = "ngspice-46.drink"
-sha256 = "82da730143b4273ccfa6c6f2fb504e62e78329400617e0068acd09fc98548f01"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/ngspice-46.drink"
-
-[[packages]]
-name = "openroad"
-version = "26Q3"
-filename = "openroad-26Q3.drink"
-sha256 = "c039afa37edec5635f010c00258f13ee3dcf7b08bc798205a7ac9f8f045d30fb"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/openroad-26Q3.drink"
-
-[[packages]]
-name = "sky130-pdk"
-version = "1.0"
-filename = "sky130-pdk-1.0.drink"
-sha256 = "57e95b1b7d627881ee02a464aef6d89f100e0167e4003533f218d6006917b716"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/sky130-pdk-1.0.drink"
-
-[[packages]]
-name = "yosys"
-version = "0.67.0"
-filename = "yosys-0.67.0.drink"
-sha256 = "9753416a8d737726f1bdc6d9d0bfd801cb407f6fb436094449f4de652ec353d2"
-download_url = "https://gitcode.com/H076lik/Drink-EDA/releases/download/v1.0/yosys-0.67.0.drink"
-
+[packages]
+lib-src = "manifests/lib-src.toml"
+yosys = "manifests/yosys.toml"
+openroad = "manifests/openroad.toml"
+klayout = "manifests/klayout.toml"
+sky130-pdk = "manifests/sky130-pdk.toml"
+iverilog = "manifests/iverilog.toml"
+magic = "manifests/magic.toml"
+ngspice = "manifests/ngspice.toml"
+gds3d = "manifests/gds3d.toml"
+drink-eda-tools = "manifests/drink-eda-tools.toml"

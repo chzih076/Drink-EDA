@@ -1,0 +1,22 @@
+--- a/third-party/abc/CMakeLists.txt
++++ b/third-party/abc/CMakeLists.txt
+@@ -104,14 +104,22 @@
+-add_library(libabc EXCLUDE_FROM_ALL ${ABC_SRC})
+-abc_properties(libabc PUBLIC)
+-set_property(TARGET libabc PROPERTY OUTPUT_NAME abc)
++add_library(libabc EXCLUDE_FROM_ALL ${ABC_SRC})
++target_include_directories(libabc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
++target_compile_options_filtered(libabc PRIVATE ${ABC_CFLAGS} ${ABC_CXXFLAGS} -Wno-unused-but-set-variable)
++target_compile_definitions(libabc PUBLIC ABC_USE_STDINT_H=1 ABC_NAMESPACE=abc)
++target_link_libraries(libabc PUBLIC ${ABC_LIBS})
++set_property(TARGET libabc PROPERTY OUTPUT_NAME abc)
+
+-add_library(libabc-pic EXCLUDE_FROM_ALL ${ABC_SRC})
+-abc_properties(libabc-pic PUBLIC)
+-set_property(TARGET libabc-pic PROPERTY POSITION_INDEPENDENT_CODE ON)
++add_library(libabc-pic EXCLUDE_FROM_ALL ${ABC_SRC})
++target_include_directories(libabc-pic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
++target_compile_options_filtered(libabc-pic PRIVATE ${ABC_CFLAGS} ${ABC_CXXFLAGS} -Wno-unused-but-set-variable)
++target_compile_options(libabc-pic PRIVATE -fPIC)
++target_compile_definitions(libabc-pic PUBLIC ABC_USE_STDINT_H=1 ABC_NAMESPACE=abc)
++target_link_libraries(libabc-pic PUBLIC ${ABC_LIBS})

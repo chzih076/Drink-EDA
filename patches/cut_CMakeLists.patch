@@ -1,0 +1,5 @@
+--- a/src/cut/src/CMakeLists.txt
++++ b/src/cut/src/CMakeLists.txt
+@@ -1 +1 @@
+-# 原文件无需修改，-fno-exceptions 传播问题已在 abc_CMakeLists.txt 中修复（PRIVATE）
++# cut 模块的 -fno-exceptions 问题通过在 abc 的 libabc target 中使用 PRIVATE 编译选项解决

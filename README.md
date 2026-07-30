@@ -22,18 +22,20 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 
 | 包 | 大小 | 许可证 | 说明 |
 |------|------|--------|------|
-| `lib-src` | 1.5MB | Apache-2.0 | 公共运行时（libstdc++/libm/libz/Tcl） |
-| `drink-eda-tools` | 5KB | Apache-2.0 | `lfl` 流程控制器 + `map_synth` 网表重命名 |
+| `lib-src` | 4.4MB | Apache-2.0 | 公共运行时（libstdc++/libm/libz/libgcc_s/Tcl） |
+| `drink-eda-tools` | 6KB | Apache-2.0 | `lfl` 流程控制器 + `map_synth` 网表重命名 |
 | `yosys` | 30MB | ISC | Yosys 综合 + ABC（hash 已修） |
-| `openroad` | 113MB | BSD-3 | OpenROAD 布局布线（+GPL全局布局, read_lef已修） |
-| `klayout` | 269MB | GPL-3.0 | KLayout 版图编辑（standalone 无 Python） |
-| `magic` | 6.6MB | BSD-3 | Magic VLSI 版图 |
+| `openroad` | 119MB | BSD-3 | OpenROAD 布局布线（GPL+or-tools+LTO, read_lef已修） |
+| `klayout` | 111MB | GPL-3.0 | KLayout 版图工具（strm2gds + 后缀匹配补丁） |
+| `magic` | 6.5MB | BSD-3 | Magic VLSI 版图 |
 | `ngspice` | 7.8MB | BSD-3 | ngspice 电路仿真 |
 | `iverilog` | 28KB | GPL-2.0 | Icarus Verilog 仿真 |
-| `sky130-pdk` | 78MB | Apache-2.0 | SkyWater 130nm PDK（HD/MS/HVL/IO/PR） |
-| `drink-pkg` | 7.9MB | GPL-2.0 |来自https://gitcode.com/H076lik/DrinkLinux的包管理器，安全快捷 |
-| `gds3d-1.8.drink` | 1.7MB | GPL-2.0 |3D看你的gds版图|
+| `sky130-pdk` | 74MB | Apache-2.0 | SkyWater 130nm PDK（HD/MS/HVL/IO/PR） |
+| `drink-pkg` | 8.3MB | GPL-2.0 |来自https://gitcode.com/H076lik/DrinkLinux的包管理器，安全快捷 |
+| `gds3d-1.8.drink` | 1.6MB | GPL-2.0 |3D看你的gds版图|
 >drink-pkg 是 DrinkLinux 项目自研的 Rust 包管理器，专为 LoongArch64 离线/轻量场景设计。如需了解其实现原理或贡献代码，请访问上游仓库[https://gitcode.com/H076lik/DrinkLinux]。
+
+> 补丁文件位于 [`patches/`](patches/)，详见各补丁头部的说明。
 
 ## 状态
 

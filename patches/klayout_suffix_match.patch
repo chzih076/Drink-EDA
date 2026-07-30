@@ -1,0 +1,33 @@
+From: loongarch-eda <eda@loongarch.org>
+Date: 2026-07-30
+Subject: KLayout strm2gds: add suffix matching for DEF cell resolution
+
+When strm2gds converts DEF to GDS, it resolves LEF macro cells against
+GDS library files. The sky130 LEF uses abbreviated names (e.g. "and3_1")
+while the GDS files use full prefixed names ("sky130_fd_sc_hd__and3_1"),
+and the LEF lacks FOREIGN statements for mapping.
+
+This patch adds suffix matching: when exact cell name lookup fails,
+try matching by suffix (e.g. "and3_1" matches "*__and3_1").
+This avoids the need for FOREIGN declarations in LEF.
+
+---
+--- a/src/plugins/streamers/lefdef/db_plugin/dbLEFDEFImporter.cc
++++ b/src/plugins/streamers/lefdef/db_plugin/dbLEFDEFImporter.cc
+@@ -1821,6 +1821,19 @@
+     for (std::map<std::string, db::cell_index_type>::iterator f = m_foreign_cells.begin (); f != m_foreign_cells.end (); ++f) {
+       if (f->second != seen) {
+         std::pair<bool, db::cell_index_type> cp = (*m)->cell_by_name (f->first.c_str ());
++        if (!cp.first) {
++          //  Try suffix matching: DEF component names may be abbreviated
++          //  (e.g. "and3_1" vs "sky130_fd_sc_hd__and3_1")
++          for (auto c = (*m)->begin (); c != (*m)->end (); ++c) {
++            const char *cname = (*m)->cell_name (c->cell_index ());
++            std::string cn (cname ? cname : "");
++            if (cn.size () > f->first.size () && cn.substr (cn.size () - f->first.size ()) == f->first) {
++              cp = std::make_pair (true, c->cell_index ());
++              break;
++            }
++          }
++        }
+         if (cp.first) {

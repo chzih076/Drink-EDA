@@ -1,9 +1,6 @@
-#!/bin/sh
-# gen_lib - Liberty 文件生成（调用 python3 liberty.py 的包装）
-# 需要 python3 + skywater_pdk 模块
-exec python3 -c "
+#!/usr/bin/env python3
+"""Wrapper to generate skywater PDK LIB files without doctest issues."""
 import sys
 sys.argv = ['liberty.py'] + sys.argv[1:]
 import skywater_pdk.liberty
 sys.exit(skywater_pdk.liberty.main())
-" "$@"

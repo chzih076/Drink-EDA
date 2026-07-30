@@ -1,0 +1,11 @@
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -326,7 +326,7 @@
+ target_link_libraries(openroad
+   ...
+   dbSta
+-  OpenSTA
+   odb
++  OpenSTA
+   ...
+ )

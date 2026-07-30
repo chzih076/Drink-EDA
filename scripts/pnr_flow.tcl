@@ -27,15 +27,7 @@ place_pins -hor_layers met1 -ver_layers met2
 puts "=== Floorplan done ==="
 
 # ---- 4. 布局 ----
-set block [ord::get_db_block]
-foreach inst [$block getInsts] {
-    set master [$inst getMaster]
-    set mname [$master getName]
-    if {[string match "dlymetal*" $mname] || \
-        [string match "lpflow*" $mname] || \
-        [string match "probe*" $mname]} { continue }
-    place_inst -name [$inst getName] -location "12 12"
-}
+global_placement -skip_io -density 0.6
 detailed_placement
 puts "=== Placement done ==="
 

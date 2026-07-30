@@ -8,13 +8,10 @@ files = []
 
 [install]
 files = [
-  { src = "/home/lik/.local/bin/yosys", dst = "/usr/local/bin/yosys", mode = "0o755" },
-  { src = "/home/lik/.local/bin/yosys-abc", dst = "/usr/local/bin/yosys-abc", mode = "0o755" },
-  { src = "/home/lik/.local/share/yosys", dst = "/usr/local/share/yosys", mode = "0o644" },
+  { src = "/home/lik/loongarch-eda/binaries/yosys", dst = "/usr/local/bin/yosys", mode = "0o755" },
+  { src = "/home/lik/loongarch-eda/binaries/yosys-abc", dst = "/usr/local/bin/yosys-abc", mode = "0o755" },
+  { src = "/home/lik/.local/share/yosys", dst = "/usr/local/share/yosys", mode = "0o755" },
   { src = "/usr/lib/libffi.so.8", dst = "/usr/lib/libffi.so.8", mode = "0o755" },
-  { src = "/usr/lib/libncursesw.so.6", dst = "/usr/lib/libncursesw.so.6", mode = "0o755" },
   { src = "/usr/lib/libreadline.so.8", dst = "/usr/lib/libreadline.so.8", mode = "0o755" },
   { src = "/usr/lib/libtcl8.6.so", dst = "/usr/lib/libtcl8.6.so", mode = "0o755" },
-  { src = "/usr/lib/libncursesw.so.6", dst = "/usr/lib/libncursesw.so.6", mode = "0o755" },
-  { src = "/usr/lib/libreadline.so.8", dst = "/usr/lib/libreadline.so.8", mode = "0o755" },
 ]

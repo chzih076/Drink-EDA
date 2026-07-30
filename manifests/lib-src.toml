@@ -1,6 +1,6 @@
 name = "lib-src"
 version = "1.0"
-desc = "Common runtime libraries (libstdc++, libm, libz, libresolv)"
+desc = "Common runtime libraries (libstdc++, libm, libz, libgcc_s)"
 deps = []
 provides = []
 license = "Apache-2.0"
@@ -12,4 +12,5 @@ files = [
   { src = "/usr/lib/libm.so.6", dst = "/usr/lib/libm.so.6", mode = "0o755" },
   { src = "/usr/lib/libresolv.so.2", dst = "/usr/lib/libresolv.so.2", mode = "0o755" },
   { src = "/usr/lib/libz.so.1", dst = "/usr/lib/libz.so.1", mode = "0o755" },
+  { src = "/usr/lib/libgcc_s.so.1", dst = "/usr/lib/libgcc_s.so.1", mode = "0o755" },
 ]

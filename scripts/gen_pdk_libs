@@ -1,128 +1,103 @@
-#!/bin/sh
-# gen_pdk_libs - PDK Liberty 维护工具（纯 sh + awk，零 Python）
-set -e
-PDK_ROOT="${PDK_ROOT:-/home/lik/.local/share/pdk}"
-SRC_DIR="${SRC_DIR:-/run/media/lik/git/skywater-pdk/libraries/sky130_fd_sc_hd/latest}"
+#!/usr/bin/env python3
+"""PDK Liberty 维护工具：生成合成版和 PnR 版两套 LIB"""
+import os, sys, re, glob, shutil
 
-cmd="${1:-all}"
+PDK_ROOT = "/home/lik/.local/share/pdk"
+LEF_PATH = f"{PDK_ROOT}/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef"
+LIB_DIR = f"{PDK_ROOT}/sky130A/libs.ref/sky130_fd_sc_hd/lib"
+SRC_DIR = "/run/media/lik/git/skywater-pdk/libraries/sky130_fd_sc_hd/latest"
 
-copy_original() {
-    echo "=== 复制原始 LIB ==="
-    for ver in sky130A sky130B; do
-        dst="$PDK_ROOT/$ver/libs.ref/sky130_fd_sc_hd/lib"
-        mkdir -p "$dst"
-        for f in "$SRC_DIR/timing/"*.lib; do
-            [ -f "$f" ] || continue
-            name=$(basename "$f" | sed 's/sky130_fd_sc_hd__//')
-            cp "$f" "$dst/$name" && echo "  $name"
-        done
-        echo "  $ver: 原始 LIB 已恢复"
-    done
-}
+def copy_original():
+    """复制原始 158 cell LIB（来自 open_pdks）"""
+    for ver in ["sky130A", "sky130B"]:
+        dst = f"{PDK_ROOT}/{ver}/libs.ref/sky130_fd_sc_hd/lib"
+        for f in glob.glob(f"{SRC_DIR}/timing/*.lib.json"):
+            if "common" in f: continue
+            name = os.path.basename(f).replace("sky130_fd_sc_hd__", "").replace(".lib.json", ".lib")
+            shutil.copy2(f, f"{dst}/{name}")
+        print(f"  {ver}: 原始 LIB 已恢复")
 
-expand_libs() {
-    LEF="$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef"
-    [ ! -f "$LEF" ] && echo "❌ 找不到 LEF: $LEF" && exit 1
-
-    echo "=== 展开 PnR LIB ==="
-    for ver in sky130A sky130B; do
-        libdir="$PDK_ROOT/$ver/libs.ref/sky130_fd_sc_hd/lib"
-        libfile="$libdir/tt_025C_1v80.lib"
-        [ ! -f "$libfile" ] && echo "  跳过 $ver（无 tt_025C_1v80.lib）" && continue
-        
-        outfile="$libdir/tt_025C_1v80_pnr.lib"
-        
-        # 用 awk 展开 LIB
-        awk -v LEF="$LEF" '
-        BEGIN {
-            # 读 LEF，收集所有 MACRO 名
-            while ((getline line < LEF) > 0) {
-                if (line ~ /^MACRO /) {
-                    name = line
-                    gsub(/^MACRO /, "", name)
-                    gsub(/ .*$/, "", name)
-                    # 分离 base 和 drive
-                    if (match(name, /^(.+)_([0-9]+)$/, a)) {
-                        base = a[1]; drive = a[2]
-                        bases[base] = bases[base] " " name
-                        if (!(base in count)) count[base] = 0
-                        count[base]++
-                    }
-                }
-            }
-            close(LEF)
-            in_cell = 0
-            cell_block = ""
-            cell_name = ""
-            expanded = 0
-        }
-        /^[[:space:]]*cell \(/ {
-            if (in_cell) {
-                # 处理上一个 cell
-                process_cell()
-            }
-            in_cell = 1
-            cell_block = $0 "\n"
-            match($0, /cell \(([^)]+)\)/, a)
-            cell_name = a[1]
-            next
-        }
-        in_cell {
-            cell_block = cell_block $0 "\n"
-            if ($0 ~ /^[[:space:]]*}/) {
-                process_cell()
-                in_cell = 0
-                cell_block = ""
-            }
-            next
-        }
-        { print }
-        END {
-            if (in_cell) process_cell()
-        }
-        function process_cell() {
-            # 找 footprint
-            fp = ""
-            if (match(cell_block, /cell_footprint[[:space:]]*:[[:space:]]*"([^"]+)"/, a))
-                fp = a[1]
-            if (fp == "") {
-                print cell_block
-                return
-            }
-            # 检查 footprint 是否在 LEF 中
-            short_fp = fp
-            gsub(/^sky130_fd_sc_hd__/, "", short_fp)
+def expand_libs():
+    """展开 LIB 使其 cell 名匹配 LEF MACRO 名"""
+    # 读 LEF 建立索引
+    lef_map = {}
+    with open(LEF_PATH) as f:
+        for line in f:
+            if line.startswith('MACRO '):
+                name = line.split()[1]
+                m = re.match(r'^(.+)_(\d+)$', name)
+                if m:
+                    lef_map.setdefault(m.group(1), []).append(name)
+    
+    for ver in ["sky130A", "sky130B"]:
+        dst = f"{PDK_ROOT}/{ver}/libs.ref/sky130_fd_sc_hd/lib"
+        for libfile in glob.glob(f"{dst}/tt_025C_1v80.lib"):
+            base = os.path.splitext(libfile)[0]
+            out = f"{base}_pnr.lib"
             
-            if (short_fp in bases) {
-                split(bases[short_fp], list)
-                all_seen[""]
-                for (i in all_seen) {}  # 重置数组（awk 技巧）
-                delete all_seen
-                for (i = 1; i <= length(list); i++) {
-                    lef_cell = list[i]
-                    if (lef_cell in all_seen) continue
-                    all_seen[lef_cell] = 1
-                    new_block = cell_block
-                    gsub(/cell \(([^)]+)\)/, "cell (" lef_cell ")", new_block)
-                    gsub(/cell_footprint[[:space:]]*:[[:space:]]*"[^"]*"/, "cell_footprint : \"" lef_cell "\"", new_block)
-                    printf "%s", new_block
-                    expanded++
-                }
-            } else {
-                printf "%s", cell_block
-            }
-        }
-        ' "$libfile" > "$outfile"
-        
-        newcnt=$(grep -c "cell (" "$outfile" 2>/dev/null || echo 0)
-        echo "  $ver: $newcnt cells → $(basename $outfile)"
-    done
-}
+            with open(libfile) as f:
+                content = f.read()
+            
+            cells = []
+            idx = 0
+            while True:
+                cm = re.search(r'\bcell\s*\([^)]+\)\s*\{', content[idx:])
+                if not cm: break
+                start = idx + cm.start()
+                depth = 1
+                end = content.index('{', start) + 1
+                while depth > 0 and end < len(content):
+                    if content[end] == '{': depth += 1
+                    elif content[end] == '}': depth -= 1
+                    end += 1
+                cells.append((start, end))
+                idx = end
+            
+            parts = []
+            last = 0
+            expanded = 0
+            all_seen = set()
+            for start, end in cells:
+                parts.append(content[last:start])
+                block = content[start:end]
+                nm = re.search(r'cell\s*\(([^)]+)\)', block)
+                fp = re.search(r'cell_footprint\s*:\s*"([^"]+)"', block)
+                if nm and fp:
+                    lib_name = nm.group(1)
+                    footprint = fp.group(1)
+                    # LEF 已去掉 sky130_fd_sc_hd__ 前缀
+                    short_fp = footprint.replace('sky130_fd_sc_hd__', '', 1)
+                    if short_fp in lef_map:
+                        for lef_cell in lef_map[short_fp]:
+                            if lef_cell in all_seen:
+                                continue
+                            all_seen.add(lef_cell)
+                            new_block = re.sub(r'cell\s*\([^)]+\)', f'cell ({lef_cell})', block)
+                            new_block = re.sub(r'cell_footprint\s*:\s*"[^"]*"', f'cell_footprint : "{lef_cell}"', new_block)
+                            parts.append(new_block)
+                            expanded += 1
+                    else:
+                        parts.append(block)
+                else:
+                    parts.append(block)
+                last = end
+            parts.append(content[last:])
+            
+            with open(out, 'w') as f:
+                f.write(''.join(parts))
+            
+            new_count = len(re.findall(r'\bcell\s*\(', ''.join(parts)))
+            print(f"  {ver}: {expanded} → {new_count} 个 cell -> {os.path.basename(out)}")
 
-case "$cmd" in
-    copy) copy_original ;;
-    expand) expand_libs ;;
-    both) copy_original; expand_libs ;;
-    *) echo "用法: gen_pdk_libs [copy|expand|both]" && exit 1 ;;
-esac
-echo "Done"
+if __name__ == '__main__':
+    cmd = sys.argv[1] if len(sys.argv) > 1 else 'all'
+    if cmd in ('copy', 'all'):
+        print("=== 复制原始 LIB ===")
+        copy_original()
+    if cmd in ('expand', 'all'):
+        print("=== 展开 PnR LIB ===")
+        expand_libs()
+    if cmd == 'both':
+        copy_original()
+        expand_libs()
+    print("Done")

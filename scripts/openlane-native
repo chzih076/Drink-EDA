@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # openlane-native - OpenLane 等价原生流程（单脚本）
 # 用法: ./openlane-native <设计名> <顶层模块> <时钟端口> <时钟周期>
 # 示例: ./openlane-native counter counter clk 10
