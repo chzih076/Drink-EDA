@@ -26,7 +26,7 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 | `drink-eda-tools` | 6KB | Apache-2.0 | `lfl` 流程控制器 + `map_synth` 网表重命名 |
 | `yosys` | 30MB | ISC | Yosys 综合 + ABC（hash 已修） |
 | `openroad` | 119MB | BSD-3 | OpenROAD 布局布线（GPL+or-tools+LTO, read_lef已修） |
-| `klayout` | 111MB | GPL-3.0 | KLayout 版图工具（strm2gds + 后缀匹配补丁） |
+| `klayout` | 114MB | GPL-3.0 | KLayout 版图工具（strm2gds 含后缀匹配，零 Python） |
 | `magic` | 6.5MB | BSD-3 | Magic VLSI 版图 |
 | `ngspice` | 7.8MB | BSD-3 | ngspice 电路仿真 |
 | `iverilog` | 28KB | GPL-2.0 | Icarus Verilog 仿真 |
