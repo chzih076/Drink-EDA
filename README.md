@@ -5,9 +5,12 @@
 
 原生适配龙芯 CPU（LoongArch64），以 `.drink` 包格式分发，由 `drink-pkg` 包管理器声明式安装。
 
-> **💾 下载**：所有 `.drink` 包和 `drink-pkg` 均在右侧「发行版本」中。  
+> **💾 下载 / Download**：所有 `.drink` 包和 `drink-pkg` 均在右侧「发行版本」中。  
 > 下载后把所有文件放在同一目录，按下方说明安装。  
+> All `.drink` packages and `drink-pkg` are in the **Releases** section on the right.  
+> Download them to the same directory and follow the instructions below.  
 https://gitcode.com/H076lik/Drink-EDA  <--实际仓库地址，包也在里面，github不上传预编译包
+https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packages included; not uploaded to GitHub)
 https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packages included; not uploaded to GitHub)
 ---
 
@@ -65,22 +68,22 @@ https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packa
 ![OpenROAD 布局](examples/loong8-ws2812-rc2/openROAD_examples_loong8-ws2812-rc2.png)  
 *OpenROAD GUI 布局布线视图*
 
-## 快速开始
+## 快速开始 / Quick Start
 
-### 安装方式
+### 安装方式 / Installation
 
 安装后各工具路径：
 
-| 包 | 安装路径 |
+| 包 / Package | 安装路径 / Install Path |
 |----|----------|
 | `openroad` | `/usr/local/bin/openroad` |
 | `yosys` | `/usr/local/bin/yosys` + `/usr/local/bin/yosys-abc` |
 | `klayout` | `/usr/local/bin/klayout` + **`/usr/local/bin/strm2gds`** |
 | `drink-eda-tools` | `/usr/local/bin/{lfl,map_synth,def2gds,gen_lib,...}` |
 | `sky130-pdk` | `/usr/local/share/pdk/sky130A/` |
-| `lib-src` | `/usr/lib/libstdc++.so.6` 等运行时 |
+| `lib-src` | `/usr/lib/libstdc++.so.6` etc. |
 
-所有工具安装后都在 `PATH` 中，直接运行即可。无需设环境变量。
+All tools are in `PATH` after installation. No environment variables needed.
 
 >把drink-pkg下载下来(在发行版本里面)和其他.drink文件放在同一目录下面，演示：
 ```bash
