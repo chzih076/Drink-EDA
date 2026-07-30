@@ -1,0 +1,14 @@
+name = "netgen"
+version = "1.5.323"
+desc = "Netgen LVS (Layout vs. Schematic) verification tool (LoongArch)"
+deps = ["lib-src"]
+provides = []
+license = "GPL-2.0-only"
+files = [
+  "/usr/local/bin/netgen",
+  "/usr/local/lib/netgen/tcl/tclnetgen.so",
+  "/usr/local/lib/netgen/tcl/netgenexec",
+  "/usr/local/lib/netgen/tcl/netgen.tcl",
+  "/usr/local/lib/netgen/tcl/console.tcl",
+  "/usr/local/lib/netgen/tcl/tkcon.tcl",
+]
