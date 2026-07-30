@@ -1,61 +1,80 @@
 #!/bin/sh
-# scripts/def2gds.sh — DEF→GDS 转换 (带 sky130 图层映射和后缀匹配)
-# 用法: scripts/def2gds.sh <input.def> [output.gds]
+# def2gds.sh — DEF→GDS conversion using KLayout
+# Usage: scripts/def2gds.sh <input.def> [output.gds]
 #
-# 依赖: strm2gds (KLayout, 需要打后缀匹配补丁)
-# 环境变量:
-#   PDK           — sky130 PDK 路径 (默认自动检测)
-#   STRM2GDS_PATH — strm2gds 路径
-#   SKY130_MAP    — 图层映射文件路径
+# Environment:
+#   KLAYOUT_PATH  — path to klayout binary (default: from PATH)
+#   PDK           — sky130 PDK path (auto-detected)
+#   SKY130_MAP    — layer map file path
 
 set -e
 
 if [ $# -lt 1 ]; then
-    echo "用法: $0 <input.def> [output.gds]"
+    echo "Usage: $0 <input.def> [output.gds]"
     exit 1
 fi
 
 INDEF="$1"
 OUTGDS="${2:-${INDEF%.def}.gds}"
 
-# PDK 自动检测
+# PDK auto-detect
 detect_pdk() {
     for d in "$PDK" \
         "$HOME/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd" \
         "/usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd"; do
         [ -f "$d/techlef/sky130_fd_sc_hd.tlef" ] && { echo "$d"; return 0; }
     done
-    echo "错误: 找不到 sky130 PDK" >&2
+    echo "Error: sky130 PDK not found" >&2
     exit 1
 }
 PDK_DIR="$(detect_pdk)"
 
-# strm2gds 检测
-STRM2GDS="${STRM2GDS_PATH:-$(command -v strm2gds)}"
-if [ -z "$STRM2GDS" ]; then
-    echo "错误: 找不到 strm2gds, 请设置 STRM2GDS_PATH" >&2
+# KLayout
+KLAYOUT="${KLAYOUT_PATH:-$(command -v klayout)}"
+if [ -z "$KLAYOUT" ]; then
+    echo "Error: klayout not found" >&2
     exit 1
 fi
 
-# KLayout 运行时
-KLAYOUT_DIR="$(dirname "$STRM2GDS")"
-export LD_LIBRARY_PATH="$KLAYOUT_DIR:$LD_LIBRARY_PATH"
-
-TECHLEF="$PDK_DIR/techlef/sky130_fd_sc_hd.tlef"
-MACROLEF="$PDK_DIR/lef/sky130_fd_sc_hd.lef"
-GDS_LIB="$PDK_DIR/gds"
+# Layer map
 MAP_FILE="${SKY130_MAP:-$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
 
-MAP_OPT=""
-[ -f "$MAP_FILE" ] && MAP_OPT="--lefdef-map $MAP_FILE"
+# Write conversion script
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT="$SCRIPT_DIR/_def2gds.lym"
+cat > "$SCRIPT" << 'PYEOF'
+import os, sys, glob
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+import klayout.db as db
 
-echo "DEF → GDS: $INDEF → $OUTGDS"
-$STRM2GDS \
-  --lefdef-lefs "$TECHLEF,$MACROLEF" \
-  --lefdef-lef-layouts-dir "$GDS_LIB" \
-  --lefdef-macro-resolution-mode 2 \
-  $MAP_OPT \
-  "$INDEF" \
-  "$OUTGDS"
+def_path = os.environ.get('INDEF', '')
+gds_path = os.environ.get('OUTGDS', '')
+pdk_dir = os.environ.get('PDK_DIR', '/usr/local/share/pdk/sky130A')
+map_file = os.environ.get('SKY130_MAP', '')
+techlef = os.path.join(pdk_dir, 'techlef/sky130_fd_sc_hd.tlef')
+macrolef = os.path.join(pdk_dir, 'lef/sky130_fd_sc_hd.lef')
+gds_lib = os.path.join(pdk_dir, 'gds')
+
+layout = db.Layout()
+layout.read(techlef)
+layout.read(macrolef)
+
+load_opts = db.LoadLayoutOptions()
+lc = load_opts.lefdef_config
+lc.macro_resolution_mode = 2
+for f in sorted(glob.glob(os.path.join(gds_lib, '*.gds'))):
+    lc.add_macro_layout_file(f)
+if map_file and os.path.exists(map_file):
+    lc.map_file = map_file
+
+layout2 = db.Layout()
+layout2.read(def_path, load_opts)
+layout2.write(gds_path)
+print("GDS: %d bytes" % os.path.getsize(gds_path))
+PYEOF
+
+INDEF="$INDEF" OUTGDS="$OUTGDS" PDK_DIR="$PDK_DIR" SKY130_MAP="$MAP_FILE" \
+  "$KLAYOUT" -b -r "$SCRIPT"
+rm -f "$SCRIPT"
 
 echo "GDS: $(ls -lh "$OUTGDS" | awk '{print $5}')"
