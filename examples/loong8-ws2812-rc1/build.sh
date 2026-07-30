@@ -48,7 +48,7 @@ GDS_LIB="$PDK/gds"
 MAP_FILE="${SKY130_MAP:-$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
 
 # ─── KLayout 运行时 ───────────────────────────────────────
-KLAYOUT_DIR="$(dirname "$STRM2GDS")"
+KLAYOUT_DIR="$(dirname "$KLAYOUT")"
 export LD_LIBRARY_PATH="$KLAYOUT_DIR:$LD_LIBRARY_PATH"
 
 # ─── 目录 ─────────────────────────────────────────────────
@@ -147,23 +147,17 @@ TCL
     ;;&
 
 gds|all)
-    step "3/4  GDS 生成 (strm2gds + 修改版 KLayout)"
+    step "3/4  GDS 生成 (strm2gds + 后缀匹配)"
 
-    # 检查 map 文件
-    if [ -f "$MAP_FILE" ]; then
-        MAP_OPT="--lefdef-map $MAP_FILE"
-        echo "  图层映射: $MAP_FILE"
-    else
-        MAP_OPT=""
-        echo "  警告: 未找到 sky130 图层映射文件, 使用默认编号"
-    fi
+    # strm2gds 现已直接链接所有格式插件，无需 Python
+    # RPATH 包含 /usr/local/lib/klayout/db_plugins
+    MAP_FILE="${SKY130_MAP:-$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
 
-    # GDS 转换 (使用修改后的 strm2gds, 支持后缀匹配)
     $STRM2GDS \
       --lefdef-lefs "$TECHLEF,$MACROLEF" \
       --lefdef-lef-layouts-dir "$GDS_LIB" \
       --lefdef-macro-resolution-mode 2 \
-      $MAP_OPT \
+      --lefdef-map "$MAP_FILE" \
       "$PNR/ws2812_routed.def" \
       "$PNR/ws2812b_ctrl.gds" 2>&1
 
