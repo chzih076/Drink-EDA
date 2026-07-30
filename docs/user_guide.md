@@ -437,7 +437,74 @@ QT_QPA_PLATFORM=xcb QT_PLUGIN_PATH=/usr/lib/qt5/plugins openroad -gui
 | ngspice | 46 | 7.8 MB |
 | gds3d | 1.8 | 1.6 MB |
 
-### 7.3 许可
+### 7.3 Magic 使用入门
+
+Magic 是一款经典的开源 VLSI 版图编辑器。在本工具链中，Magic 主要用于查看/手动调整 GDS 版图。
+
+#### 启动
+
+```bash
+# OpenGL 模式（推荐，Wayland/X11 均可）
+export CAD_ROOT=/usr/local/lib
+magic -d OGL
+
+# NULL 模式（无图形界面，用于批量脚本）
+magic -dnull -noconsole script.tcl
+```
+
+#### 加载 GDS
+
+```tcl
+# 在 Magic Tcl 控制台中
+tech load /usr/local/share/pdk/sky130A/libs.tech/magic/sky130A.tech
+gds readonly true
+gds read design.gds
+load design_name
+select top cell
+```
+
+#### 操作
+
+| 按键 | 功能 |
+|------|------|
+| `F` | 缩放到适配 |
+| `S` | 选择工具 |
+| `:` | 命令模式 |
+| `Ctrl+Z` | 撤销 |
+| 左键 | 选择 |
+| 右键 | 菜单 |
+| 滚轮 | 缩放 |
+
+#### 常用命令
+
+```tcl
+# 查看 cell 列表
+cif list
+
+# 查看选中区域坐标
+box
+
+# 写入 mag 视图
+writeall mag output_dir
+
+# 写入 GDS
+cif output design.gds sky130
+```
+
+#### 从 LEF 生成 maglef 视图
+
+```tcl
+lef read /path/to/library.lef
+writeall maglef /path/to/output_dir/
+```
+
+#### 注意事项
+
+- Magic 的 OpenGL 驱动在 Wayland + XWayland 下可能使用 CPU 软件渲染，不影响功能
+- NULL 驱动适用于批量脚本、open_pdks 集成等无头场景
+- 首次启动需设置 `CAD_ROOT` 指向 Magic 的安装目录
+
+### 7.4 许可
 
 - 仓库内容：Apache 2.0
 - 二进制包：遵循各上游项目许可证（BSD-3 / GPL-2.0 / GPL-3.0 / ISC / Apache-2.0）

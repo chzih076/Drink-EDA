@@ -33,10 +33,10 @@
 | `yosys` | 30MB | ISC | Yosys 综合 + ABC（hash 已修） |
 | `openroad` | 119MB | BSD-3 | OpenROAD 布局布线（GPL+or-tools+LTO, read_lef已修） |
 | `klayout` | 114MB | GPL-3.0 | KLayout 版图工具（strm2gds 含后缀匹配，零 Python） |
-| `magic` | 6.5MB | BSD-3 | Magic VLSI 版图 |
+| `magic` | 11MB | BSD-3 | Magic VLSI 版图（OpenGL+NULL 双驱动） |
 | `ngspice` | 7.8MB | BSD-3 | ngspice 电路仿真 |
 | `iverilog` | 28KB | GPL-2.0 | Icarus Verilog 仿真 |
-| `sky130-pdk` | 74MB | Apache-2.0 | SkyWater 130nm PDK（HD/MS/HVL/IO/PR） |
+| `sky130-pdk` | 78MB | Apache-2.0 | SkyWater 130nm PDK（含 .mag 视图） |
 | `drink-pkg` | 8.3MB | GPL-2.0 |来自https://gitcode.com/H076lik/DrinkLinux的包管理器，安全快捷 |
 | `gds3d-1.8.drink` | 1.6MB | GPL-2.0 |3D看你的gds版图|
 >drink-pkg 是 DrinkLinux 项目自研的 Rust 包管理器，专为 LoongArch64 离线/轻量场景设计。如需了解其实现原理或贡献代码，请访问上游仓库[https://gitcode.com/H076lik/DrinkLinux]。
