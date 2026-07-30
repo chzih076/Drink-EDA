@@ -9,9 +9,9 @@
 > 下载后把所有文件放在同一目录，按下方说明安装。  
 > All `.drink` packages and `drink-pkg` are in the **Releases** section on the right.  
 > Download them to the same directory and follow the instructions below.  
-https://gitcode.com/H076lik/Drink-EDA  <--实际仓库地址，包也在里面，github不上传预编译包
-https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packages included; not uploaded to GitHub)
-https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packages included; not uploaded to GitHub)
+> https://gitcode.com/H076lik/Drink-EDA  <--实际仓库地址，包也在里面，github不上传预编译包
+> https://gitcode.com/H076lik/Drink-EDA  <-- Actual repository (pre-compiled packages included; not uploaded to GitHub)
+
 ---
 
 ## 系统要求
