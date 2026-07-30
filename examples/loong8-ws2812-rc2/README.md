@@ -26,7 +26,7 @@ WS2812B 智能 LED 控制器硬核实现 —— loong8 体系结构的专用硬�
 ```bash
 cd /home/lik/Drink-EDA/examples/loong8-ws2812-rc2
 ./build.sh          # 一键全流程
-./build.sh gds      # 仅 GDS（需要 python3 + klayout）
+./build.sh gds      # 仅 GDS（strm2gds 零 Python）
 ./build.sh clean    # 清理
 ```
 
@@ -65,14 +65,13 @@ loong8-ws2812-rc2/
 |------|------|------|
 | Yosys 0.67+ | 逻辑综合 | 需 LoongArch ABC SCL hash 补丁 |
 | OpenROAD 26Q3 | 布局布线 | 禁用 GPL 模块 |
-| KLayout Python API | GDS 合并（含晶体管） | python3 + klayout 包 |
+| **strm2gds** (内嵌) | DEF→GDS 转换（后缀匹配） | 零 Python，零插件依赖 |
 | strm2gds (KLayout) | LEF 抽象 GDS（无晶体管） | 无额外依赖 |
 | map_synth | ABC 网表 → PnR 网表重命名 | 无 |
 | sky130 PDK | SkyWater 130nm 工艺库 | open_pdks 安装 |
 
 **GDS 生成说明**：`pnr/ws2812b_ctrl.gds` 为预生成文件，含完整晶体管几何。
-开发机上 `./build.sh gds` 调用 Python+KLayout API 重新生成。
-容器环境无 Python 时使用预生成文件即可。
+调用 `strm2gds` 重新生成（零 Python）。
 
 ## 布线收敛
 

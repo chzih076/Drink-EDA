@@ -461,7 +461,10 @@ gds readonly true
 gds read design.gds
 load design_name
 select top cell
+openwrapper        # 创建版图窗口
 ```
+
+> **注意**：Magic 会打开两个窗口——**版图窗口**（显示 layout）和 **Tk 控制台**（只显示文字）。Tk 控制台漆黑是正常的。
 
 #### 操作
 
