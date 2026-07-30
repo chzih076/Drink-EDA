@@ -23,15 +23,15 @@
 | 工具 | 版本 | 用途 | 注意事项 |
 |------|------|------|----------|
 | Yosys | 0.67+ | 逻辑综合 | 需 ABC SCL hash 补丁（LoongArch） |
-| OpenROAD | 26Q3 | 布局布线 | 禁用 GPL 模块（-DENABLE_GPL=OFF） |
-| KLayout | 0.30.9 | GDS 查看/转换 | 可用 strm2gds 命令行工具 |
+| OpenROAD | 26Q3 | 布局布线 | GPL+or-tools+LTO（全功能） |
+| KLayout | 0.30.9 | GDS 查看/转换 | strm2gds 已内嵌后缀匹配 |
 | iverilog | 12.0 | 仿真 | 直接可用 |
 | map_synth | 1.0 | ABC 网表重命名 | awk 脚本，给 cell 加 _1 后缀 |
 
 **关键补丁**：
 1. ABC SCL hash 修复 → `abc_scl_loongarch_hash_fix.patch`
 2. OpenROAD read_lef → `openroad_readlef_update_lib.patch`
-3. KLayout `--lefdef-lef-layouts-dir` 选项 → 批量加载 GDS 目录
+3. KLayout 后缀匹配 → `klayout_suffix_match.patch`（strm2gds 直接链接所有格式插件）
 
 ---
 
@@ -104,7 +104,7 @@ ABC 输出的 cell 名不带 `_1` 后缀（如 `nand2`），但 PnR 库用的是
 
 ### 5.2 布局方式
 
-**手动网格布局**：
+**手动网格布局（早期版本）**：
 ```tcl
 set x 35; set y 35
 foreach i [$b getInsts] {
@@ -113,8 +113,14 @@ foreach i [$b getInsts] {
     if {$x > 550} { set x 35; set y [expr {$y + 6}] }
 }
 ```
+这种方法简单但线长不可控。
 
-这种方法简单可靠，但会造成线长增加（HPWL 约 1M）。对于小设计可接受。
+**自动布局（当前方案）**：改用 RePlAce 引擎（or-tools 9.15 后端）：
+```tcl
+global_placement -skip_io -density 0.6
+detailed_placement
+```
+375 轮迭代后 HPWL 2457um，平均位移仅 2.8um，0 DRC。gpl 模块通过 `-DHAS_GPL=1` 启用。
 
 **随机簇布局**：HPWL 2.6M，比网格差，不推荐。
 
@@ -167,43 +173,36 @@ define_pdn_grid -name "Core" -voltage_domains CORE
 
 ## 六、GDS 合并
 
-### 6.1 方案对比
+### 6.1 方案演进
 
-| 方案 | 优点 | 缺点 |
-|------|------|------|
-| strm2gds + LEF | 无依赖 | 只有 metal 抽象，无晶体管 |
-| strm2gds + `--lefdef-lef-layouts-dir` | 可加载 GDS | sky130 无 FOREIGN 引用，不生效 |
-| Python + KLayout API | 完整几何 | 需要 python3+klayout |
-| C 手写 GDS 格式 | 零依赖 | GDS 二进制格式太复杂 |
-| Rust 手写 GDS 格式 | 零依赖 | 同样 GDS 格式问题 |
+**阶段一：Python + KLayout API（早期）**
+最初用 KLayout Python 绑定手动读取 DEF + 合并标准单元 GDS。工作正常但有 Python 依赖。
 
-**结论**：最可靠的是 **Python + KLayout API**。KLayout 的 Python 绑定正确处理了 GDS 的二进制格式和 layer 映射。
+**阶段二：strm2gds + 后缀匹配（当前）**
+修改 KLayout 源码的 `dbLEFDEFImporter.cc`，在 `finish()` 函数中增加**后缀匹配**：
+当精确匹配失败时，遍历宏布局库寻找以目标名结尾的 cell。这样 DEF 中的 `and3_1` 自动匹配 GDS 中的 `sky130_fd_sc_hd__and3_1`，无需 FOREIGN 声明。
 
-### 6.2 Cell 名映射
+同时重构 strm2gds 编译，直接链接所有格式插件（liblefdef、libgds2、liboasis 等），RPATH 包含 `/usr/local/lib/klayout/db_plugins`，安装即用，零 Python 依赖。
 
-sky130 标准单元的 GDS 文件名格式：`sky130_fd_sc_hd__dfrtp_1.gds`，内部 cell 名同文件名。
-
-DEF 中引用的是短名 `dfrtp_1`。GDS 合并时需要建立映射：
-
-```python
-short = tc.name
-if short.startswith("sky130_fd_sc_hd__"):
-    short = short[17:]  # 注意是 17 不是 18！
+```bash
+strm2gds \
+  --lefdef-lefs <techlef>,<macrolef> \
+  --lefdef-lef-layouts-dir <gds_dir> \
+  --lefdef-macro-resolution-mode 2 \
+  --lefdef-map sky130A.map \
+  design.def design.gds
 ```
 
-### 6.3 Layer 复制
+### 6.2 图层映射
 
-KLayout API 复制 shapes 时的 layer 映射：
+必须使用 `--lefdef-map sky130A.map` 将 LEF 布线层映射到正确的 sky130 GDS 层号：
 
-```python
-for li in range(ly.layers()):
-    info = ly.get_info(li)        # 返回 LayerInfo(layer, datatype)
-    tli = layout.layer(info.layer, info.datatype)  # 保留 datatype
-    for s in tc.shapes(li).each():
-        layout.cell(ci).shapes(tli).insert(s)
-```
+| LEF 层 | map 前 (默认) | map 后 (正确) |
+|--------|--------------|--------------|
+| met1   | 3/0 | **68/20** |
+| met2   | 4/0 | **69/20** |
 
-**坑**：`layout.layer(info)` 在 KLayout Python API 中不接受 LayerInfo 对象，需要用 `info.layer, info.datatype`。
+不使用 map 的话 GDS 层号是错的，KLayout/GDS3D 无法正确显示。
 
 ---
 
@@ -224,19 +223,19 @@ iverilog 直接可用。注意：
 - 用 `drink-pkg build <pkg>` 构建
 
 **经验**：
-- KLayout 包 269MB，包含 200+ .so 文件
-- `strm2gds` 和 `strm2gdstxt` 需要包含在 KLayout 包中
-- `drink-eda-tools` 包包含 `def2gds.sh` 等流程脚本
+- KLayout 包 114MB（链接所有格式插件后略增）
+- strm2gds 已直接链接 liblefdef.so，RPATH 含 `/usr/local/lib/klayout/db_plugins`
+- `drink-pkg build` 需 `follow_symlinks(false)` 防止软链接被展开（已修）
 
 ---
 
 ## 九、LoongArch 特有坑
 
 1. **ABC SCL hash** → 必须打补丁，否则 ABC 崩溃
-2. **GCC LTO bug** → `-DLINK_TIME_OPTIMIZATION=OFF`
-3. **CUDD 符号** → ABC 用 `ABC_NAMESPACE=abc` 编译，OpenSTA 需要 `using namespace abc`
-4. **KLayout Python API** → 正常工作（KLayout 编译时带了 Python 支持）
-5. **magic** → 编译正常，但 PDK 的 mag 视图缺失
+2. **GCC LTO** → GCC 15.3.0 已修复，LTO 可正常启用
+3. **CUDD 符号** → ABC 用 `ABC_NAMESPACE=abc` 编译，OpenSTA 需 C 链接包裹
+4. **strm2gds 插件加载** → 直接链接所有格式插件到 strm2gds，RPATH 含 db_plugins
+5. **HAS_GPL** → 需 `-DHAS_GPL=1` 编译 OpenROAD 以启用 gpl 模块
 
 ---
 
