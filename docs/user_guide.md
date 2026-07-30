@@ -511,7 +511,93 @@ writeall maglef /path/to/output_dir/
 - NULL 驱动适用于批量脚本、open_pdks 集成等无头场景
 - 首次启动需设置 `CAD_ROOT` 指向 Magic 的安装目录
 
-### 7.4 许可
+### 7.4 Netgen LVS 使用入门
+
+Netgen 是一款开源 LVS（Layout vs. Schematic）比对工具。在本流程中，用于验证版图与原理图是否一致。
+
+#### LVS 流程概览
+
+```
+ws2812_pnr.v (综合网表)
+      │
+      ├──→ OpenROAD read_verilog + read_def + write_cdl ──→ layout.cdl (版图网表)
+      │                                                          │
+      ├──→ v2spice.sh ──→ schematic.cdl (原理图网表)              │
+      │                                                          │
+      └──→ Netgen LVS ──→ Circuits match?  ✅/❌
+```
+
+#### 一键运行
+
+```bash
+# 完整 LVS 流程（OpenROAD 提取 + 电源修复 + 原理图生成 + Netgen 比对）
+sh scripts/extract_lvs.sh <设计目录> <顶层模块> <网表.v> <布线后.def>
+
+# 示例（在示例目录下运行）
+sh scripts/extract_lvs.sh \
+  examples/loong8-ws2812-rc2 \
+  ws2812b_ctrl \
+  synth/ws2812_pnr.v \
+  pnr/ws2812_routed.def
+```
+
+#### 分步执行
+
+```bash
+# 1. 创建短名 CDL 模型（PDK 使用 sky130_fd_sc_hd__ 前缀，OpenROAD 需要去掉）
+while IFS= read -r line; do
+  case "$line" in *sky130_fd_sc_hd__*)
+    echo "${line//sky130_fd_sc_hd__/}" ;;
+  *) echo "$line" ;;
+  esac
+done < $PDK_DIR/cdl/sky130_fd_sc_hd.cdl > /tmp/sky130_fd_sc_hd_short.cdl
+
+# 2. OpenROAD 提取版图 CDL
+openroad -no_init -no_splash -exit << TCL
+read_lef $PDK_DIR/techlef/sky130_fd_sc_hd.tlef
+read_lef $PDK_DIR/lef/sky130_fd_sc_hd.lef
+read_def $DESIGN_DIR/pnr/ws2812_routed.def
+read_verilog $DESIGN_DIR/synth/ws2812_pnr.v
+link_design "ws2812b_ctrl"
+write_cdl -include_fillers -masters /tmp/sky130_fd_sc_hd_short.cdl /tmp/layout.raw.cdl
+TCL
+
+# 3. 修复电源引脚（_unconnected_ → VGND/VPWR）
+fix_cdl_power.sh /tmp/layout.raw.cdl $PDK_DIR/spice/sky130_fd_sc_hd.spice /tmp/layout.cdl
+
+# 4. 生成原理图网表
+v2spice.sh $DESIGN_DIR/synth/ws2812_pnr.v /tmp/schematic.cdl
+
+# 5. 运行 LVS
+netgen -batch << 'TCL'
+lvs /tmp/layout.cdl ws2812b_ctrl /tmp/schematic.cdl ws2812b_ctrl
+puts "LVS done"
+exit
+TCL
+```
+
+#### 理解 LVS 结果
+
+LVS 通过时会显示：
+```
+Circuits match uniquely.
+Devices: 2426   (1213 nfet + 1213 pfet)
+Cells: 33 cells matched
+```
+
+LVS 失败时常见原因：
+| 错误 | 原因 |
+|------|------|
+| `Circuits do not match` | 版图和原理图不一致 |
+| `Call to undefined subcircuit` | 缺少 `.include` 或 CDL 模型 |
+| `No such file number` | 顶层 cell 名称不匹配 |
+| `Top level cell failed pin matching` | 电源引脚连接错误 |
+
+#### 注意事项
+
+- Netgen GUI 在 Wayland 下可能显示空白，使用 `-batch` 批量模式即可
+- OpenROAD `write_cdl` 需要短名 CDL 模型（PDK 的 `sky130_fd_sc_hd__` 前缀与网表不匹配）
+- `v2spice.sh` 自动从 SPICE 模型提取引脚顺序，支持多行 Verilog
 
 - 仓库内容：Apache 2.0
 - 二进制包：遵循各上游项目许可证（BSD-3 / GPL-2.0 / GPL-3.0 / ISC / Apache-2.0）
