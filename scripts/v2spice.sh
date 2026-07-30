@@ -84,12 +84,22 @@ done
   echo "* Date: $(date)"
   echo ""
 
-  PORTS=$(awk '/^(input|output|inout) +/ {
-      for (i=2; i<=NF; i++) {
-          gsub(/[;,\(\)]/,"",$i)
-          if ($i != "" && $i !~ /^\\$/) printf " %s", $i
+  PORTS=$(awk '{
+      # 去掉行首空白
+      sub(/^[ \t]+/, "")
+      # 匹配 input/output/inout 声明（可能带位宽）
+      if (/^(input|output|inout)[ \t]/) {
+          # 提取标识符（去掉位宽 [7:0] 部分）
+          for (i=2; i<=NF; i++) {
+              gsub(/[;,\(\)\[\]]/,"",$i)
+              if ($i != "" && $i !~ /^(wire|reg|supply0|supply1)$/ && $i !~ /^\\$/) {
+                  # 如果是 bus 声明，已经在上一行处理了位宽
+                  split($i, a, /[\]\[]/)
+                  print a[1]
+              }
+          }
       }
-  }' "$IN" | tr '\n' ' ' | xargs)
+  }' "$IN" | sort -u | tr '\n' ' ' | xargs)
   echo ".SUBCKT $TOP $PORTS"
   echo ""
 
