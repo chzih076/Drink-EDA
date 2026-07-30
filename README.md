@@ -29,7 +29,7 @@
 | 包 | 大小 | 许可证 | 说明 |
 |------|------|--------|------|
 | `lib-src` | 4.4MB | Apache-2.0 | 公共运行时（libstdc++/libm/libz/libgcc_s/Tcl） |
-| `drink-eda-tools` | 6KB | Apache-2.0 | `lfl` 流程控制器 + `map_synth` 网表重命名 |
+| `drink-eda-tools` | 6KB | Apache-2.0 | `flow.sh` 通用流程 + `map_synth` 网表重命名 |
 | `yosys` | 30MB | ISC | Yosys 综合 + ABC（hash 已修） |
 | `openroad` | 119MB | BSD-3 | OpenROAD 布局布线（GPL+or-tools+LTO, read_lef已修） |
 | `klayout` | 114MB | GPL-3.0 | KLayout 版图工具（strm2gds 含后缀匹配，零 Python） |
@@ -80,7 +80,7 @@
 | `openroad` | `/usr/local/bin/openroad` |
 | `yosys` | `/usr/local/bin/yosys` + `/usr/local/bin/yosys-abc` |
 | `klayout` | `/usr/local/bin/klayout` + **`/usr/local/bin/strm2gds`** |
-| `drink-eda-tools` | `/usr/local/bin/{lfl,map_synth,def2gds,gen_lib,...}` |
+| `drink-eda-tools` | `/usr/local/bin/{flow.sh,map_synth,def2gds,...}` |
 | `sky130-pdk` | `/usr/local/share/pdk/sky130A/` |
 | `lib-src` | `/usr/lib/libstdc++.so.6` etc. |
 
@@ -170,14 +170,9 @@ Drink-EDA/
 │   ├── flow.sh           ← 通用 RTL→GDSII 流程
 │   ├── def2gds.sh        ← DEF→GDS 转换（sky130 图层映射）
 │   ├── pnr_flow.tcl      ← OpenROAD PnR 模板
-│   ├── map_synth         ← 网表重命名
-│   ├── gen_pdk_libs      ← PDK 维护
-│   ├── gen_lib           ← Liberty 生成
-│   ├── lfl               ← 流程控制器
-│   ├── openlane-native   ← 一键 RTL→PnR
-│   ├── openroad_route.tcl
-│   ├── librelane_corner.tcl
-│   └── librelane_io.tcl
+│   ├── extract_lvs.sh    ← LVS 一键流程
+│   ├── v2spice.sh        ← Verilog→SPICE 转换
+│   ├── fix_cdl_power.sh  ← CDL 电源引脚修复
 ├── examples/     ← 参考设计
 │   └── loong8-ws2812-rc2/  ← WS2812B LED 控制器 (v1.0-rc2)
 │       ├── build.sh        ← 一键全流程

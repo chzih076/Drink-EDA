@@ -26,6 +26,7 @@ BEGIN { in_cell = 0 }
             split(line, a, /[\(\)]/)
             pin = a[1]; sub(/^\./, "", pin)
             net = a[2]
+            gsub(/\[/, "_", net); gsub(/\]/, "", net)
             pairs = pairs (pairs != "" ? " " : "") pin "=" net
         }
         if (line ~ /\)[ \t]*;/) {
@@ -55,6 +56,7 @@ BEGIN { in_cell = 0 }
                 split(m, a, /\(/)
                 pin = a[1]; net = a[2]
                 gsub(/[ \t]/, "", net)
+                gsub(/\[/, "_", net); gsub(/\]/, "", net)
                 pairs_line = pairs_line (pairs_line != "" ? " " : "") pin "=" net
                 line = substr(line, RSTART+RLENGTH)
             }
@@ -84,22 +86,44 @@ done
   echo "* Date: $(date)"
   echo ""
 
-  PORTS=$(awk '{
-      # 去掉行首空白
+  PORTS=$(awk '
+  BEGIN { seen[""] = 1; first = 1 }
+  {
       sub(/^[ \t]+/, "")
-      # 匹配 input/output/inout 声明（可能带位宽）
-      if (/^(input|output|inout)[ \t]/) {
-          # 提取标识符（去掉位宽 [7:0] 部分）
-          for (i=2; i<=NF; i++) {
-              gsub(/[;,\(\)\[\]]/,"",$i)
+  }
+  /^(input|output|inout)[ \t]/ {
+      if ($2 ~ /^\[[0-9]+:[0-9]+\]/) {
+          # 总线声明: output [7:0] debug; → debug_7 debug_6 ... debug_0
+          split($2, arr, /\[|:|\]/)
+          msb = arr[2] + 0
+          lsb = arr[3] + 0
+          for (i = 3; i <= NF; i++) {
+              gsub(/[;,\(\)]/, "", $i)
+              if ($i != "" && $i !~ /^(wire|reg|supply0|supply1)$/) {
+                  for (b = msb; b >= lsb; b--) {
+                      port = $i "_" b
+                      if (!seen[port]) {
+                          seen[port] = 1
+                          printf "%s%s", (first ? "" : " "), port
+                          first = 0
+                      }
+                  }
+              }
+          }
+      } else {
+          # 标量端口
+          for (i = 2; i <= NF; i++) {
+              gsub(/[;,\(\)]/, "", $i)
               if ($i != "" && $i !~ /^(wire|reg|supply0|supply1)$/ && $i !~ /^\\$/) {
-                  # 如果是 bus 声明，已经在上一行处理了位宽
-                  split($i, a, /[\]\[]/)
-                  print a[1]
+                  if (!seen[$i]) {
+                      seen[$i] = 1
+                      printf "%s%s", (first ? "" : " "), $i
+                      first = 0
+                  }
               }
           }
       }
-  }' "$IN" | sort -u | tr '\n' ' ' | xargs)
+  }' "$IN")
   echo ".SUBCKT $TOP $PORTS"
   echo ""
 
