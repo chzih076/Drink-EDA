@@ -1,5 +1,5 @@
-# sky130 GDS3D techfile
-# GDS layer numbers for sky130A
+# sky130 GDS3D techfile (corrected for sky130A GDS layer numbers)
+# GDS层号来源: sky130A.map + 标准单元GDS
 
 LayerStart: Substrate
 Layer: 255
@@ -13,8 +13,32 @@ Metal: 0
 Show: 1
 LayerEnd
 
-LayerStart: li1 (Local Interconnect)
+LayerStart: diff (Diffusion)
 Layer: 64
+Height: -400
+Thickness: 200
+Red: 0.0
+Green: 0.8
+Blue: 0.0
+Filter: 0.0
+Metal: 0
+Show: 1
+LayerEnd
+
+LayerStart: poly (Polysilicon)
+Layer: 65
+Height: -50
+Thickness: 100
+Red: 0.9
+Green: 0.1
+Blue: 0.1
+Filter: 0.0
+Metal: 0
+Show: 1
+LayerEnd
+
+LayerStart: li1 (Local Interconnect)
+Layer: 67
 Height: -200
 Thickness: 100
 Red: 0.5
@@ -26,7 +50,7 @@ Show: 1
 LayerEnd
 
 LayerStart: met1 (Metal 1)
-Layer: 65
+Layer: 68
 Height: 0
 Thickness: 200
 Red: 0.2
@@ -38,7 +62,7 @@ Show: 1
 LayerEnd
 
 LayerStart: met2 (Metal 2)
-Layer: 66
+Layer: 69
 Height: 300
 Thickness: 250
 Red: 0.0
@@ -50,7 +74,7 @@ Show: 1
 LayerEnd
 
 LayerStart: met3 (Metal 3)
-Layer: 67
+Layer: 70
 Height: 650
 Thickness: 300
 Red: 0.0
@@ -62,7 +86,7 @@ Show: 1
 LayerEnd
 
 LayerStart: met4 (Metal 4)
-Layer: 68
+Layer: 71
 Height: 1050
 Thickness: 350
 Red: 1.0
@@ -74,7 +98,7 @@ Show: 1
 LayerEnd
 
 LayerStart: met5 (Metal 5)
-Layer: 69
+Layer: 72
 Height: 1500
 Thickness: 450
 Red: 1.0
@@ -85,73 +109,13 @@ Metal: 1
 Show: 1
 LayerEnd
 
-LayerStart: via
-Layer: 71
-Height: 100
-Thickness: 200
-Red: 1.0
-Green: 1.0
-Blue: 1.0
-Filter: 0.3
-Metal: 0
-Show: 1
-LayerEnd
-
-LayerStart: via2
-Layer: 72
-Height: 450
-Thickness: 200
-Red: 1.0
-Green: 1.0
-Blue: 1.0
-Filter: 0.3
-Metal: 0
-Show: 1
-LayerEnd
-
-LayerStart: poly (Polysilicon)
-Layer: 81
-Height: -50
-Thickness: 100
-Red: 0.9
-Green: 0.1
-Blue: 0.1
-Filter: 0.0
-Metal: 0
-Show: 1
-LayerEnd
-
-LayerStart: diff (Active Area)
-Layer: 93
-Height: -400
-Thickness: 200
-Red: 0.0
-Green: 0.8
-Blue: 0.0
-Filter: 0.0
-Metal: 0
-Show: 1
-LayerEnd
-
-LayerStart: tap (Substrate Tap)
-Layer: 94
-Height: -400
-Thickness: 200
+LayerStart: pwell
+Layer: 122
+Height: -700
+Thickness: 300
 Red: 0.6
 Green: 0.6
 Blue: 0.0
-Filter: 0.0
-Metal: 0
-Show: 1
-LayerEnd
-
-LayerStart: nsdm (N+ Implant)
-Layer: 95
-Height: -400
-Thickness: 100
-Red: 0.8
-Green: 0.4
-Blue: 0.8
 Filter: 0.3
 Metal: 0
 Show: 1
