@@ -1,21 +1,24 @@
 name = "drink-eda-tools"
 version = "1.2"
-desc = "Drink-EDA unified tools (Rust): drink CLI (map-synth/manifests/lvs-models/pdk-libs), flow scripts, def2gds"
+desc = "Drink-EDA unified tools (Rust): drink CLI (map-synth/manifests/lvs-models/pdk-libs/package), flow scripts, def2gds"
 deps = ["lib-src"]
 provides = []
 license = "Apache-2.0"
 files = [
-  "/usr/local/bin/drink",
-  "/usr/local/bin/gen_lvs_models",
   "/usr/local/bin/map_synth",
   "/usr/local/bin/gen_pdk_libs",
   "/usr/local/bin/gen_lib",
   "/usr/local/bin/openlane-native",
   "/usr/local/bin/def2gds",
+  "/usr/local/share/drink-eda/openroad_route.tcl",
+  "/usr/local/bin/gen_lvs_models",
+  "/usr/local/bin/drink",
   "/usr/local/share/drink-eda/scripts/flow.sh",
   "/usr/local/share/drink-eda/scripts/extract_lvs.sh",
   "/usr/local/share/drink-eda/scripts/v2spice.sh",
   "/usr/local/share/drink-eda/scripts/fix_cdl_power.sh",
   "/usr/local/share/drink-eda/scripts/def2gds.sh",
   "/usr/local/share/drink-eda/scripts/convert_libjson.py",
+  "/usr/local/share/drink-eda/scripts/librelane_io.tcl",
+  "/usr/local/share/drink-eda/scripts/librelane_corner.tcl",
 ]
