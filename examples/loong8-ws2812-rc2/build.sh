@@ -40,12 +40,16 @@ detect_pdk() {
     exit 1
 }
 PDK="$(detect_pdk)"
-LIB_CLEAN="$PDK/lib/tt_025C_1v80_clean.lib"
-LIB_PNR="$PDK/lib/tt_025C_1v80_pnr.lib"
+LIB_CLEAN="$PDK/lib/tt_025C_1v80.lib"
+LIB_PNR="$PDK/lib/tt_025C_1v80.lib"
 TECHLEF="$PDK/techlef/sky130_fd_sc_hd.tlef"
 MACROLEF="$PDK/lef/sky130_fd_sc_hd.lef"
 GDS_LIB="$PDK/gds"
-MAP_FILE="${SKY130_MAP:-$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
+if [ -f "$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map" ]; then
+    MAP_FILE="${SKY130_MAP:-$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
+elif [ -f "/usr/local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map" ]; then
+    MAP_FILE="${SKY130_MAP:-/usr/local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
+fi
 
 # ─── KLayout 运行时 ───────────────────────────────────────
 KLAYOUT_DIR="$(dirname "$KLAYOUT")"
@@ -151,7 +155,7 @@ gds|all)
 
     # strm2gds 现已直接链接所有格式插件，无需 Python
     # RPATH 包含 /usr/local/lib/klayout/db_plugins
-    MAP_FILE="${SKY130_MAP:-$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
+    MAP_FILE="${SKY130_MAP:-$MAP_FILE}"
 
     $STRM2GDS \
       --lefdef-lefs "$TECHLEF,$MACROLEF" \
@@ -200,7 +204,7 @@ sim)
     mkdir -p sim
     iverilog -g2012 -o sim/ws2812b.vvp "$RTL/ws2812_led.v" sim/ws2812b_tb.v 2>&1
     vvp sim/ws2812b.vvp 2>&1 | head -5
-    echo "  波形: sim/ws2812b.vcd"
+    echo "  注: 测试台未开启 VCD 转储（$dumpvars），如需波形请在 TB 中启用"
     ;;&
 
 clean)

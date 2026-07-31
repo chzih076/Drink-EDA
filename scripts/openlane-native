@@ -11,7 +11,11 @@ CLK_PERIOD="${4:-10}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DESIGN_DIR="./designs/$DESIGN"
 RESULTS_DIR="$DESIGN_DIR/results"
-PDK_ROOT="${PDK_ROOT:-/home/lik/.local/share/pdk}"
+if [ -z "${PDK_ROOT:-}" ]; then
+    if [ -d /usr/local/share/pdk/sky130A ]; then PDK_ROOT=/usr/local/share/pdk
+    elif [ -d "$HOME/.local/share/pdk/sky130A" ]; then PDK_ROOT="$HOME/.local/share/pdk"
+    fi
+fi
 PDK="${PDK:-sky130A}"
 LIB_DIR="$PDK_ROOT/$PDK/libs.ref/sky130_fd_sc_hd"
 
@@ -21,17 +25,17 @@ echo "=== Phase 1: Synthesis (yosys) ==="
 yosys -q -p "
   read_verilog $DESIGN_DIR/$DESIGN.v;
   synth -top $TOP;
-  dfflibmap -liberty $LIB_DIR/lib/tt_025C_1v80_pnr.lib;
-  abc -liberty $LIB_DIR/lib/tt_025C_1v80_pnr.lib;
+  dfflibmap -liberty $LIB_DIR/lib/tt_025C_1v80.lib;
+  abc -liberty $LIB_DIR/lib/tt_025C_1v80.lib;
   opt; clean;
   write_verilog $RESULTS_DIR/${DESIGN}_synth.v;
-  stat -liberty $LIB_DIR/lib/tt_025C_1v80_pnr.lib;
+  stat -liberty $LIB_DIR/lib/tt_025C_1v80.lib;
 "
 
 echo "=== Phase 2: PnR (OpenROAD) ==="
 cat > "$RESULTS_DIR/pnr.tcl" << TCLEOF
 set lib_dir "$LIB_DIR"
-read_liberty \$lib_dir/lib/tt_025C_1v80_pnr.lib
+read_liberty \$lib_dir/lib/tt_025C_1v80.lib
 read_lef \$lib_dir/techlef/sky130_fd_sc_hd.tlef
 read_lef \$lib_dir/lef/sky130_fd_sc_hd.lef
 read_verilog $RESULTS_DIR/${DESIGN}_synth.v

@@ -25,20 +25,27 @@
    └── 需要 Qt5
 
 5. PDK
-   ├── open_pdks → sky130A
-   ├── gen_pdk_libs expand (裁剪多工艺角)
-   └── 仅保留 tt_025C_1v80
+   ├── open_pdks → sky130A（make all-A）
+   ├── drink lvs-models（生成 LVS 模型库 sky130A.lvs.spice）
+   └── 打包裁剪（核心 tt/ff/ss，扩展全 corner；全量本地保留）
+
+6. netgen（GPL-2.0，含源码修复）
+   ├── spice.c: 顶层自引用检查限 subckt 内 + .model 卡跳过
+   └── netfile.c: SpiceSkipNewLine 跳过续行间注释行
 ```
 
 ## 包构建
 
 ```bash
-# 1. 生成安装清单
-python3 scripts/gen_manifests.py
+# 1. 生成安装清单（Rust 统一工具，替代 Python）
+drink manifests
 
-# 2. 构建 .drink 包
+# 2. 生成 PDK 分包目录树（Rust，替代 package_sky130_split.py）
+drink package --pdk-root ~/.local/share/pdk/sky130A --out build-pkgs/sky130-pdk-split
+
+# 3. 构建 .drink 包
 drink-pkg build pkgdir
 
-# 3. 部署到 rootfs
+# 4. 部署到 rootfs
 drink-pkg deploy -r /path/to/rootfs manifests/yosys.toml
 ```

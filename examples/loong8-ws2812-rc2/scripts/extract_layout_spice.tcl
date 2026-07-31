@@ -1,7 +1,11 @@
 # extract_layout_spice.tcl — OpenROAD layout SPICE extraction for LVS
 # Usage: openroad -no_init -no_splash -exit extract_layout_spice.tcl
 
-set PDK_DIR "/home/lik/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd"
+if {[info exists ::env(PDK_DIR)]} {
+    set PDK_DIR $::env(PDK_DIR)
+} else {
+    set PDK_DIR "/usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd"
+}
 set TECHLEF "$PDK_DIR/techlef/sky130_fd_sc_hd.tlef"
 set MACROLEF "$PDK_DIR/lef/sky130_fd_sc_hd.lef"
 set ROUTED_DEF "pnr/ws2812_routed.def"

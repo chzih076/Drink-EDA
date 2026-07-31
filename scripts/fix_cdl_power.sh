@@ -110,8 +110,7 @@ function process_pdk_subckt(line,    nf, fields, cell, i, pin_str) {
     nf = split(line, fields)
     if (nf < 3) return
     cell = fields[2]
-    # Remove sky130_fd_sc_hd__ prefix (common in SkyWater PDK)
-    gsub(/^sky130_fd_sc_hd__/, "", cell)
+    # 新版 PDK 网表与模型 cell 名一致（sky130_fd_sc_hd__ 前缀保留）
     # Build pin list (fields 3..NF)
     pin_str = fields[3]
     for (i = 4; i <= nf; i++) {

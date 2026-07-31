@@ -1,7 +1,11 @@
 # timing_mc.tcl — 多角时序分析（setup/hold）
 # 完整 PnR + 多角 STA
-set PDK_DIR "/home/lik/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd"
-set LIB_TT  "$PDK_DIR/lib/tt_025C_1v80_pnr.lib"
+if {[info exists ::env(PDK_DIR)]} {
+    set PDK_DIR $::env(PDK_DIR)
+} else {
+    set PDK_DIR "/usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd"
+}
+set LIB_TT  "$PDK_DIR/lib/tt_025C_1v80.lib"
 set LIB_SS  "$PDK_DIR/lib/ss_n40C_1v60_ccsnoise.lib"
 set LIB_FF  "$PDK_DIR/lib/ff_n40C_1v95_ccsnoise.lib"
 set TECHLEF "$PDK_DIR/techlef/sky130_fd_sc_hd.tlef"

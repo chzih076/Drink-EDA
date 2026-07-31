@@ -4,7 +4,7 @@ WS2812B 智能 LED 控制器硬核实现 —— loong8 体系结构的专用硬�
 
 ## 概述
 
-不可编程的 WS2812B 彩灯控制器，内建紫色呼吸灯效果。纯硬件状态机替代"CPU+固件"方案，188 个标准单元，0 DRC 违例。
+不可编程的 WS2812B 彩灯控制器，内建紫色呼吸灯效果。纯硬件状态机替代"CPU+固件"方案，189 个标准单元，0 DRC 违例。
 
 ## 设计规格
 
@@ -14,17 +14,18 @@ WS2812B 智能 LED 控制器硬核实现 —— loong8 体系结构的专用硬�
 | 工艺 | SkyWater sky130A (130nm) |
 | 时钟 | 50MHz → 800KHz WS2812B 时序 |
 | 面积 | 100 × 100 μm |
-| 标准单元 | 188 （50 DFF + 138 组合） |
-| 验证 | 0 DRC 违例，三角时序收敛 ✅ |
+| 标准单元 | 189 （50 DFF + 139 组合） |
+| 验证 | 0 DRC 违例，LVS Circuits match uniquely ✅ |
 | Setup Slack (TT) | **17.398 ns** |
 | Setup Slack (SS) | **16.779 ns** |
 | Hold Slack (FF)  | **0.329 ns** |
 | 全流程 | ~70 秒 |
+| LVS | netgen（修复版）匹配唯一 ✅ |
 
 ## 快速开始
 
 ```bash
-cd /home/lik/Drink-EDA/examples/loong8-ws2812-rc2
+cd examples/loong8-ws2812-rc2
 ./build.sh          # 一键全流程
 ./build.sh gds      # 仅 GDS（strm2gds 零 Python）
 ./build.sh clean    # 清理
@@ -48,7 +49,7 @@ loong8-ws2812-rc2/
 │   └── ws2812_pnr.v      # 映射后网表
 ├── pnr/
 │   ├── ws2812_routed.def # 布线后版图（0 DRC）
-│   ├── ws2812b_ctrl.gds  # 完整 GDS（324K，含晶体管）
+│   ├── ws2812b_ctrl.gds  # 完整 GDS（341K，含晶体管）
 │   └── ws2812_drc.rpt    # DRC 报告（空 = 0 违例）
 ├── log/
 │   ├── synth.log         # 综合日志

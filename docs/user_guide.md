@@ -68,7 +68,7 @@ sudo ./drink-pkg install lib-src-1.0.drink
 
 ```bash
 # 1. 基础工具包（流程脚本）
-sudo ./drink-pkg install drink-eda-tools-1.0.drink
+sudo ./drink-pkg install drink-eda-tools-1.2.drink
 
 # 2. Yosys 综合工具
 sudo ./drink-pkg install yosys-0.67.0.drink
@@ -79,9 +79,30 @@ sudo ./drink-pkg install openroad-26Q3.drink
 # 4. KLayout GDS 工具（strm2gds 已内嵌后缀匹配）
 sudo ./drink-pkg install klayout-0.30.9.drink
 
-# 5. PDK
-sudo ./drink-pkg install sky130-pdk-1.0.drink
+# 5. 仿真与查看工具
+sudo ./drink-pkg install ngspice-46.drink
+sudo ./drink-pkg install iverilog-12.0.drink
+sudo ./drink-pkg install gds3d-1.8.drink
+
+# 6. 版图与 LVS（7.3/7.4 教程依赖）
+sudo ./drink-pkg install magic-8.3.drink
+sudo ./drink-pkg install netgen-1.5.323.drink
+
+# 7. PDK（核心包，含 7 个标准单元变体 + SRAM 宏 + libs.tech）
+sudo ./drink-pkg install sky130-pdk-1.1.drink
+
+# 8. PDK 扩展包（可选，补齐全部时序 corner：ff/ss/ccsnoise）
+sudo ./drink-pkg install sky130-pdk-extra-hs-1.0.drink   # hs 全部 corner
+sudo ./drink-pkg install sky130-pdk-extra-ls-1.0.drink   # ls 全部 corner
+sudo ./drink-pkg install sky130-pdk-extra-ms-1.0.drink   # ms 全部 corner
+sudo ./drink-pkg install sky130-pdk-extra-lp-1.0.drink   # lp 全部 corner
+sudo ./drink-pkg install sky130-pdk-extra-misc-1.0.drink # hd/hdll/hvl 全部 corner
 ```
+
+> **说明**：核心包已含每变体 tt/ff/ss 三个常用 corner，可直接完成
+> 综合→布局→LVS 全流程；扩展包补齐全部时序 corner（含 ccsnoise 签核库）。
+> 核心 + 扩展 = 完整 PDK（约 9 GB）。升级时旧文件残留不会被自动清理，
+> 如需干净升级请先删除 `/usr/local/share/pdk/sky130A`。
 
 ### 2.4 验证安装
 
@@ -90,9 +111,14 @@ sudo ./drink-pkg install sky130-pdk-1.0.drink
 yosys -V
 openroad -version
 strm2gds --help
+drink help          # 统一工具（map-synth/manifests/lvs-models/pdk-libs）
 
-# 验证 PDK
-ls /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/
+# 验证 PDK（7 个标准单元变体 + SRAM 宏）
+ls /usr/local/share/pdk/sky130A/libs.ref/ | grep sky130_fd_sc
+ls /usr/local/share/pdk/sky130A/libs.ref/sky130_sram_macros/
+
+# 验证 LVS 模型库（netgen 用，无需 .include）
+ls /usr/local/share/pdk/sky130A/libs.tech/netgen/sky130A.lvs.spice
 ```
 
 ### 2.5 安装路径一览
@@ -103,10 +129,9 @@ ls /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/
 | yosys / yosys-abc | `/usr/local/bin/yosys` |
 | klayout | `/usr/local/bin/klayout` |
 | strm2gds | `/usr/local/bin/strm2gds` |
-| map_synth | `/usr/local/bin/map_synth` |
-| lfl | `/usr/local/bin/lfl` |
+| drink | `/usr/local/bin/drink`（map-synth/manifests/lvs-models/pdk-libs） |
 | PDK | `/usr/local/share/pdk/sky130A/` |
-| 运行时库 | `/usr/local/lib/` |
+| 运行时库 | `/usr/lib/` |
 | KLayout 插件 | `/usr/local/lib/klayout/db_plugins/` |
 
 ---
@@ -125,7 +150,7 @@ ls /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/
 │  + ABC 优化 │     │  GPL+DRT    │     │  后缀匹配   │     │  格式    │
 └─────────────┘     └──────────────┘     └─────────────┘     └──────────┘
       │                    │                      │
-  188 cells             0 DRC                324 KB
+  189 cells             0 DRC                341 KB
 ```
 
 ### 3.2 Yosys（综合）
@@ -142,9 +167,9 @@ write_verilog synth_out.v
 ```
 
 关键点：
-- 使用 `tt_025C_1v80_clean.lib`（去除时序信息的 liberty 文件，适合综合）
+- 使用 `tt_025C_1v80.lib`（新版 PDK cell 名与 LEF MACRO 一致，直接可用）
 - ABC 做逻辑优化和多级工艺映射
-- 输出通用单元（如 `$_AND_`），需通过 `map_synth` 映射到 PDK 单元
+- 输出带 `sky130_fd_sc_hd__` 前缀的库单元，需通过 `map_synth` 映射到 PDK 单元
 
 ### 3.3 OpenROAD（布局布线）
 
@@ -220,6 +245,16 @@ OPENROAD_PATH=/opt/openroad ./build.sh
 scripts/flow.sh top rtl/top.v 100 100
 ```
 
+
+> **切换标准单元变体**：flow.sh 默认使用 hd（高密度）。换用其他变体
+> （如 hs 高速、lp 低功耗）时，设置 `PDK` 指向对应变体的 libs.ref 目录：
+> ```bash
+> PDK=/usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hs >   sh scripts/flow.sh top rtl/top.v
+> ```
+> 注意：lib 路径按变体区分（`libs.ref/sky130_fd_sc_<变体>/lib/`），
+> LVS 提取同理设置 `PDK_DIR`。
+
+
 它会自动完成综合→布局布线→GDS 全流程，结果输出在 `synth/`、`pnr/`、`log/` 目录。
 
 ```bash
@@ -268,8 +303,8 @@ EOF
 yosys -l log/synth.log -p "
   read_verilog rtl/top.v;
   synth -top top -flatten;
-  dfflibmap -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80_clean.lib;
-  abc -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80_clean.lib;
+  dfflibmap -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80.lib;
+  abc -liberty /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80.lib;
   opt;
   write_verilog synth/top_synth.v
 "
@@ -280,7 +315,7 @@ map_synth synth/top_synth.v synth/top_pnr.v
 # 5. 布局布线
 openroad -no_init -no_splash -exit << TCL
   set PDK /usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd
-  read_liberty \$PDK/lib/tt_025C_1v80_pnr.lib
+  read_liberty \$PDK/lib/tt_025C_1v80.lib
   read_lef \$PDK/techlef/sky130_fd_sc_hd.tlef
   read_lef \$PDK/lef/sky130_fd_sc_hd.lef
   read_verilog synth/top_pnr.v
@@ -290,9 +325,9 @@ openroad -no_init -no_splash -exit << TCL
   place_pins -hor_layers met1 -ver_layers met2
   global_placement -skip_io -density 0.6
   detailed_placement
-  add_global_connection -net VCC -inst_pattern {.*} -pin_pattern {VCC} -power
-  add_global_connection -net VSS -inst_pattern {.*} -pin_pattern {VSS} -ground
-  set_voltage_domain -name CORE -power VCC -ground VSS
+  add_global_connection -net VPWR -inst_pattern {.*} -pin_pattern {VPWR} -power
+  add_global_connection -net VGND -inst_pattern {.*} -pin_pattern {VGND} -ground
+  set_voltage_domain -name CORE -power VPWR -ground VGND
   define_pdn_grid -name "Core" -voltage_domains CORE
   add_pdn_stripe -grid "Core" -layer met1 -width 0.48 -pitch 10 -offset 0 -followpins
   add_pdn_stripe -grid "Core" -layer met2 -width 0.48 -pitch 10 -offset 5
@@ -315,6 +350,10 @@ strm2gds \
 # 7. 验证
 echo "DRC: $(cat pnr/top_drc.rpt)"
 echo "GDS: $(ls -lh pnr/top.gds)"
+
+# 8. LVS 验证（OpenROAD 提取 + Netgen 比对）
+sh /usr/local/share/drink-eda/scripts/extract_lvs.sh . top synth/top_pnr.v pnr/top_routed.def
+# 期望输出: Final result: Circuits match uniquely.
 ```
 
 ### 5.2 理解关键参数
@@ -357,6 +396,21 @@ report_timing -max_paths 5 -digits 3
 
 - `-period 20`：时钟周期 20ns（50MHz）
 - `report_timing` 显示建立时间余量（slack）
+
+### 5.4 功能仿真（iverilog）
+
+```bash
+# 1. 编写测试台（sim/tb.v），例化顶层并驱动时钟/复位
+# 2. 编译 + 运行
+iverilog -g2012 -o sim/design.vvp rtl/design.v sim/tb.v
+vvp sim/design.vvp          # 输出 VCD 波形
+# 3. 查看波形（GTKWave 或 KLayout 之外的工具）
+gtkwave sim/design.vcd &
+```
+
+> 电路级仿真可用 ngspice（包内含 sky130 器件模型，见 libs.tech/ngspice/）。
+> 示例测试台：`examples/loong8-ws2812-rc2/sim/ws2812b_tb.v`。
+
 
 ---
 
@@ -433,13 +487,23 @@ QT_QPA_PLATFORM=xcb QT_PLUGIN_PATH=/usr/lib/qt5/plugins openroad -gui
 | yosys | 0.67.0 | 30 MB |
 | openroad | 26Q3 | 119 MB |
 | klayout | 0.30.9 | 114 MB |
-| sky130-pdk | 1.0 | 74 MB |
-| drink-eda-tools | 1.0 | 6 KB |
+| **sky130-pdk（核心）** | **1.1** | **291 MB** |
+| sky130-pdk-extra-hs | 1.0 | 356 MB |
+| sky130-pdk-extra-ls | 1.0 | 404 MB |
+| sky130-pdk-extra-ms | 1.0 | 335 MB |
+| sky130-pdk-extra-lp | 1.0 | 194 MB |
+| sky130-pdk-extra-misc | 1.0 | 194 MB |
+| **drink-eda-tools** | **1.2** | 0.5 MB |
 | iverilog | 12.0 | 28 KB |
-| magic | 8.3 | 6.5 MB |
-| netgen | 1.5.323 | 593 KB |
+| magic | 8.3 | 11 MB |
+| **netgen（含源码修复）** | 1.5.323 | 606 KB |
 | ngspice | 46 | 7.8 MB |
 | gds3d | 1.8 | 1.6 MB |
+
+> 核心 PDK 内容：7 个标准单元变体（hd/hdll/hs/lp/ls/ms/hvl）的
+> gds/lef/cdl/spice/verilog/mag/maglef/techlef + tt/ff/ss lib +
+> SRAM 宏库（1k/2k）+ libs.tech 全套（magic/klayout/netgen/ngspice/librelane）。
+> netgen 包含三处解析器修复（顶层自引用误报、.model 卡跳过、续行注释处理）。
 
 ### 7.3 Magic 使用入门
 
@@ -515,6 +579,11 @@ writeall maglef /path/to/output_dir/
 
 Netgen 是一款开源 LVS（Layout vs. Schematic）比对工具。在本流程中，用于验证版图与原理图是否一致。
 
+> 本工具链的 netgen 包含三处解析器修复（见 7.2 版本表），可正确处理
+> skywater PDK 的 spice 格式：顶层自引用实例误报、`.model` 卡跳过、
+> 续行中的注释行。LVS 模型库 `sky130A.lvs.spice` 为自包含文件
+> （netgen 不支持 `.include`），由 `drink lvs-models` 生成并随 PDK 分发。
+
 #### LVS 流程概览
 
 ```
@@ -541,36 +610,42 @@ sh scripts/extract_lvs.sh \
   pnr/ws2812_routed.def
 ```
 
-#### 分步执行
+`extract_lvs.sh` 内部完成：CDL 提取（masters 直接使用 PDK 的
+`sky130_fd_sc_hd.cdl`，新版 cell 名与网表一致，无需去前缀）→
+电源引脚修复（`_unconnected_` → VGND/VPWR，`fix_cdl_power.sh`）→
+原理图生成（`v2spice.sh`，自动处理总线端口与 `assign` 直连别名）→
+内联 LVS 模型库 → netgen 比对（`{文件 cell}` 列表语法 + setup 文件）。
+
+#### 分步执行（手动方式）
 
 ```bash
-# 1. 创建短名 CDL 模型（PDK 使用 sky130_fd_sc_hd__ 前缀，OpenROAD 需要去掉）
-while IFS= read -r line; do
-  case "$line" in *sky130_fd_sc_hd__*)
-    echo "${line//sky130_fd_sc_hd__/}" ;;
-  *) echo "$line" ;;
-  esac
-done < $PDK_DIR/cdl/sky130_fd_sc_hd.cdl > /tmp/sky130_fd_sc_hd_short.cdl
+PDK=/usr/local/share/pdk/sky130A
+PDK_DIR=$PDK/libs.ref/sky130_fd_sc_hd
+LVS_MODELS=$PDK/libs.tech/netgen/sky130A.lvs.spice
+LVS_SETUP=$PDK/libs.tech/netgen/sky130A_setup.tcl
 
-# 2. OpenROAD 提取版图 CDL
+# 1. OpenROAD 提取版图 CDL（masters = PDK cdl，带前缀名）
 openroad -no_init -no_splash -exit << TCL
+read_liberty $PDK_DIR/lib/tt_025C_1v80.lib
 read_lef $PDK_DIR/techlef/sky130_fd_sc_hd.tlef
 read_lef $PDK_DIR/lef/sky130_fd_sc_hd.lef
 read_def $DESIGN_DIR/pnr/ws2812_routed.def
 read_verilog $DESIGN_DIR/synth/ws2812_pnr.v
 link_design "ws2812b_ctrl"
-write_cdl -include_fillers -masters /tmp/sky130_fd_sc_hd_short.cdl /tmp/layout.raw.cdl
+write_cdl -include_fillers -masters $PDK_DIR/cdl/sky130_fd_sc_hd.cdl /tmp/layout.raw.cdl
 TCL
 
-# 3. 修复电源引脚（_unconnected_ → VGND/VPWR）
-fix_cdl_power.sh /tmp/layout.raw.cdl $PDK_DIR/spice/sky130_fd_sc_hd.spice /tmp/layout.cdl
+# 2. 修复电源引脚 + 总线端口（_unconnected_ → VGND/VPWR）
+fix_cdl_power.sh /tmp/layout.raw.cdl $LVS_MODELS /tmp/layout.cdl
 
-# 4. 生成原理图网表
+# 3. 生成原理图网表（含 assign 别名处理）
 v2spice.sh $DESIGN_DIR/synth/ws2812_pnr.v /tmp/schematic.cdl
 
-# 5. 运行 LVS
-netgen -batch << 'TCL'
-lvs /tmp/layout.cdl ws2812b_ctrl /tmp/schematic.cdl ws2812b_ctrl
+# 4. 内联模型库 + 运行 LVS（netgen 不支持 .include，模型库拼到网表前）
+cat $LVS_MODELS /tmp/layout.cdl    > /tmp/layout_full.cdl
+cat $LVS_MODELS /tmp/schematic.cdl > /tmp/schematic_full.cdl
+netgen -noc << TCL
+lvs {/tmp/layout_full.cdl ws2812b_ctrl} {/tmp/schematic_full.cdl ws2812b_ctrl} $LVS_SETUP
 puts "LVS done"
 exit
 TCL
@@ -580,24 +655,55 @@ TCL
 
 LVS 通过时会显示：
 ```
+Circuit 1 contains 189 devices, Circuit 2 contains 189 devices.
+Circuit 1 contains 193 nets,    Circuit 2 contains 193 nets.
+Final result:
 Circuits match uniquely.
-Devices: 2426   (1213 nfet + 1213 pfet)
-Cells: 33 cells matched
 ```
 
 LVS 失败时常见原因：
 | 错误 | 原因 |
 |------|------|
 | `Circuits do not match` | 版图和原理图不一致 |
-| `Call to undefined subcircuit` | 缺少 `.include` 或 CDL 模型 |
-| `No such file number` | 顶层 cell 名称不匹配 |
-| `Top level cell failed pin matching` | 电源引脚连接错误 |
+| `Call to undefined subcircuit` | 模型缺失（需 `drink lvs-models` 重新生成模型库） |
+| `No such file number` | `lvs` 命令未使用 `{文件 cell}` 列表语法 |
+| `Top level cell failed pin matching` | 顶层端口未连接（检查 `assign` 直连的端口） |
 
 #### 注意事项
 
-- Netgen GUI 在 Wayland 下可能显示空白，使用 `-batch` 批量模式即可
-- OpenROAD `write_cdl` 需要短名 CDL 模型（PDK 的 `sky130_fd_sc_hd__` 前缀与网表不匹配）
-- `v2spice.sh` 自动从 SPICE 模型提取引脚顺序，支持多行 Verilog
+- Netgen GUI 在 Wayland 下可能显示空白，使用 `-noc < script.tcl`（stdin）批量模式即可
+- 模型库 `sky130A.lvs.spice` 由 `drink lvs-models` 生成（扫描变体 spice 引用
+  的 pr 器件，拼接 corner pm3，过滤文件级残片）；PDK 重建后重新生成：
+  ```bash
+  drink lvs-models --pdk <libs.ref目录> --corner tt --out <libs.tech/netgen/sky130A.lvs.spice>
+  # 默认：--pdk ~/.local/share/pdk/sky130A/libs.ref，输出到 libs.tech/netgen/
+  ```
+- `v2spice.sh` 自动从 SPICE 模型提取引脚顺序，支持多行 Verilog 与
+  `assign` 端口直连（含总线别名，如 `debug = brightness`）
+
+
+### 7.5 SRAM 宏使用（sky130_sram_macros）
+
+核心 PDK 内置 SRAM 宏库（1k/2k，OpenRAM 生成），可用于 SoC 存储：
+
+```bash
+SRAM_DIR=/usr/local/share/pdk/sky130A/libs.ref/sky130_sram_macros
+
+# 1. 例化：在 RTL 中直接例化宏（端口见 verilog 文件）
+#    SRAM_DIR/verilog/sky130_sram_1kbyte_1rw1r_32x256_8.v
+
+# 2. 综合后，PnR 时读取宏的 LEF + LIB（OpenROAD）
+read_liberty $SRAM_DIR/lib/sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.lib
+read_lef $SRAM_DIR/lef/sky130_sram_1kbyte_1rw1r_32x256_8.lef
+
+# 3. GDS 合并时把宏 gds 目录并入 strm2gds 的 layouts-dir
+#    --lefdef-lef-layouts-dir "$SRAM_DIR/gds"
+```
+
+> 可用宏：`sky130_sram_1kbyte_1rw1r_32x256_8`、`sky130_sram_1kbyte_1rw1r_8x1024_8`、
+> `sky130_sram_2kbyte_1rw1r_32x512_8`（4k/16k 待 OpenRAM 本地生成补充）。
+
+
 
 - 仓库内容：Apache 2.0
 - 二进制包：遵循各上游项目许可证（BSD-3 / GPL-2.0 / GPL-3.0 / ISC / Apache-2.0）

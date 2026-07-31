@@ -45,12 +45,17 @@ detect_pdk() {
 }
 PDK_DIR="$(detect_pdk)"
 
-LIB_CLEAN="$PDK_DIR/lib/tt_025C_1v80_clean.lib"
-LIB_PNR="$PDK_DIR/lib/tt_025C_1v80_pnr.lib"
+LIB_CLEAN="$PDK_DIR/lib/tt_025C_1v80.lib"
+LIB_PNR="$PDK_DIR/lib/tt_025C_1v80.lib"
 TECHLEF="$PDK_DIR/techlef/sky130_fd_sc_hd.tlef"
 MACROLEF="$PDK_DIR/lef/sky130_fd_sc_hd.lef"
 GDS_LIB="$PDK_DIR/gds"
-MAP_FILE="${SKY130_MAP:-$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
+# MAP 文件自动探测（环境变量优先，其次用户本地，最后系统安装）
+if [ -f "$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map" ]; then
+    MAP_FILE="${SKY130_MAP:-$HOME/.local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
+elif [ -f "/usr/local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map" ]; then
+    MAP_FILE="${SKY130_MAP:-/usr/local/share/pdk/sky130A/libs.tech/klayout/tech/sky130A.map}"
+fi
 
 # ─── 目录 ─────────────────────────────────────────────────
 SYNTH_DIR="synth"

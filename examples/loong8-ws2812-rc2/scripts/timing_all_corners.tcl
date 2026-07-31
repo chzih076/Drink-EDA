@@ -1,7 +1,11 @@
 # timing_all_corners.tcl — 三角时序分析（TT + 近似 SS/FF）
 # SS/FF 使用 timing derate 近似（基于 Sky130 典型工艺角差异）
-set PDK_DIR "/home/lik/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd"
-set LIB_TT  "$PDK_DIR/lib/tt_025C_1v80_pnr.lib"
+if {[info exists ::env(PDK_DIR)]} {
+    set PDK_DIR $::env(PDK_DIR)
+} else {
+    set PDK_DIR "/usr/local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd"
+}
+set LIB_TT  "$PDK_DIR/lib/tt_025C_1v80.lib"
 set TECHLEF "$PDK_DIR/techlef/sky130_fd_sc_hd.tlef"
 set MACROLEF "$PDK_DIR/lef/sky130_fd_sc_hd.lef"
 

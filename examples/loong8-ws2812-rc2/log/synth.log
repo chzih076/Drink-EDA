@@ -9,8 +9,8 @@
 -- Running command `
       read_verilog rtl/ws2812_led.v;
       synth -top ws2812b_ctrl -flatten;
-      dfflibmap -liberty /home/lik/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80_clean.lib;
-      abc -liberty /home/lik/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80_clean.lib;
+      dfflibmap -liberty /home/lik/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80.lib;
+      abc -liberty /home/lik/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80.lib;
       opt;
       write_verilog synth/ws2812_synth.v
     ' --
@@ -806,46 +806,46 @@ Checking module ws2812b_ctrl...
 Found and reported 0 problems.
 
 3. Executing DFFLIBMAP pass (mapping DFF cells to sequential cells from liberty file).
-  cell dfxtp (noninv, pins=3, area=20.02) is a direct match for cell type $_DFF_P_.
-  cell dfrtn (noninv, pins=4, area=25.02) is a direct match for cell type $_DFF_NN0_.
-  cell dfrtp (noninv, pins=4, area=25.02) is a direct match for cell type $_DFF_PN0_.
-  cell dfstp (noninv, pins=4, area=26.28) is a direct match for cell type $_DFF_PN1_.
-  cell edfxtp (noninv, pins=4, area=30.03) is a direct match for cell type $_DFFE_PP_.
-  cell dfbbn (noninv, pins=6, area=32.53) is a direct match for cell type $_DFFSR_NNN_.
-  cell dfbbp (noninv, pins=6, area=32.53) is a direct match for cell type $_DFFSR_PNN_.
+  cell sky130_fd_sc_hd__dfxtp_1 (noninv, pins=3, area=20.02) is a direct match for cell type $_DFF_P_.
+  cell sky130_fd_sc_hd__dfrtn_1 (noninv, pins=4, area=25.02) is a direct match for cell type $_DFF_NN0_.
+  cell sky130_fd_sc_hd__dfrtp_1 (noninv, pins=4, area=25.02) is a direct match for cell type $_DFF_PN0_.
+  cell sky130_fd_sc_hd__dfstp_2 (noninv, pins=4, area=26.28) is a direct match for cell type $_DFF_PN1_.
+  cell sky130_fd_sc_hd__edfxtp_1 (noninv, pins=4, area=30.03) is a direct match for cell type $_DFFE_PP_.
+  cell sky130_fd_sc_hd__dfbbn_1 (noninv, pins=6, area=32.53) is a direct match for cell type $_DFFSR_NNN_.
+  cell sky130_fd_sc_hd__dfbbp_1 (noninv, pins=6, area=32.53) is a direct match for cell type $_DFFSR_PNN_.
   final dff cell mappings:
     unmapped dff cell: $_DFF_N_
-    \dfxtp _DFF_P_ (.CLK( C), .D( D), .Q( Q));
-    \dfrtn _DFF_NN0_ (.CLK_N( C), .D( D), .Q( Q), .RESET_B( R));
+    \sky130_fd_sc_hd__dfxtp_1 _DFF_P_ (.CLK( C), .D( D), .Q( Q));
+    \sky130_fd_sc_hd__dfrtn_1 _DFF_NN0_ (.CLK_N( C), .D( D), .Q( Q), .RESET_B( R));
     unmapped dff cell: $_DFF_NN1_
     unmapped dff cell: $_DFF_NP0_
     unmapped dff cell: $_DFF_NP1_
-    \dfrtp _DFF_PN0_ (.CLK( C), .D( D), .Q( Q), .RESET_B( R));
-    \dfstp _DFF_PN1_ (.CLK( C), .D( D), .Q( Q), .SET_B( R));
+    \sky130_fd_sc_hd__dfrtp_1 _DFF_PN0_ (.CLK( C), .D( D), .Q( Q), .RESET_B( R));
+    \sky130_fd_sc_hd__dfstp_2 _DFF_PN1_ (.CLK( C), .D( D), .Q( Q), .SET_B( R));
     unmapped dff cell: $_DFF_PP0_
     unmapped dff cell: $_DFF_PP1_
     unmapped dff cell: $_DFFE_NN_
     unmapped dff cell: $_DFFE_NP_
     unmapped dff cell: $_DFFE_PN_
-    \edfxtp _DFFE_PP_ (.CLK( C), .D( D), .DE( E), .Q( Q));
-    \dfbbn _DFFSR_NNN_ (.CLK_N( C), .D( D), .Q( Q), .Q_N(~Q), .RESET_B( R), .SET_B( S));
+    \sky130_fd_sc_hd__edfxtp_1 _DFFE_PP_ (.CLK( C), .D( D), .DE( E), .Q( Q));
+    \sky130_fd_sc_hd__dfbbn_1 _DFFSR_NNN_ (.CLK_N( C), .D( D), .Q( Q), .Q_N(~Q), .RESET_B( R), .SET_B( S));
     unmapped dff cell: $_DFFSR_NNP_
     unmapped dff cell: $_DFFSR_NPN_
     unmapped dff cell: $_DFFSR_NPP_
-    \dfbbp _DFFSR_PNN_ (.CLK( C), .D( D), .Q( Q), .Q_N(~Q), .RESET_B( R), .SET_B( S));
+    \sky130_fd_sc_hd__dfbbp_1 _DFFSR_PNN_ (.CLK( C), .D( D), .Q( Q), .Q_N(~Q), .RESET_B( R), .SET_B( S));
     unmapped dff cell: $_DFFSR_PNP_
     unmapped dff cell: $_DFFSR_PPN_
     unmapped dff cell: $_DFFSR_PPP_
 
 3.1. Executing DFFLEGALIZE pass (convert FFs to types supported by the target).
-<suppressed ~11 debug messages>
+<suppressed ~24 debug messages>
 Mapping DFF cells in module `\ws2812b_ctrl':
-  mapped 50 $_DFF_PN0_ cells to \dfrtp cells.
+  mapped 50 $_DFF_PN0_ cells to \sky130_fd_sc_hd__dfrtp_1 cells.
 
 4. Executing ABC pass (technology mapping using ABC).
 
 4.1. Extracting gate netlist of module `\ws2812b_ctrl' to `<abc-temp-dir>/input.blif'..
-ABC: using cached merged SCL: /tmp/yosys-liberty-scl-cache/yosys_merged_67b1009a.scl (1 files)
+ABC: using cached merged SCL: /tmp/yosys-liberty-scl-cache/yosys_merged_9e40c064.scl (1 files)
 
 4.1.1. Executed ABC.
 Extracted 186 gates and 236 wires to a netlist network with 50 inputs and 42 outputs.
@@ -854,8 +854,8 @@ ABC: UC Berkeley, ABC 1.01 (compiled Jul 30 2026 00:17:08)
 ABC: abc 01> empty
 ABC: abc 01> source <abc-temp-dir>/abc.script
 ABC: + read_blif <abc-temp-dir>/input.blif 
-ABC: + read_scl /tmp/yosys-liberty-scl-cache/yosys_merged_67b1009a.scl 
-ABC: Warning: Detected 5 multi-output cells (for example, "fa").
+ABC: + read_scl /tmp/yosys-liberty-scl-cache/yosys_merged_9e40c064.scl 
+ABC: Warning: Detected 9 multi-output cells (for example, "sky130_fd_sc_hd__fa_1").
 ABC: + strash 
 ABC: + &get -n 
 ABC: + &fraig -x 
@@ -874,39 +874,40 @@ ABC:
 ABC: YOSYS_ABC_DONE 
 
 4.1.2. Re-integrating ABC results.
-ABC RESULTS:            a211oi cells:        4
-ABC RESULTS:              a21o cells:        1
-ABC RESULTS:             a21oi cells:       10
-ABC RESULTS:            a311oi cells:        1
-ABC RESULTS:             a31oi cells:        6
-ABC RESULTS:             a32oi cells:        1
-ABC RESULTS:              and2 cells:        3
-ABC RESULTS:              and3 cells:        4
-ABC RESULTS:              and4 cells:        7
-ABC RESULTS:   lpflow_inputiso0p cells:        1
-ABC RESULTS:   lpflow_inputiso1p cells:        3
-ABC RESULTS:              maj3 cells:        1
-ABC RESULTS:              mux2 cells:        3
-ABC RESULTS:             mux2i cells:        2
-ABC RESULTS:              mux4 cells:        2
-ABC RESULTS:             nand2 cells:       10
-ABC RESULTS:            nand2b cells:        1
-ABC RESULTS:             nand3 cells:        3
-ABC RESULTS:             nand4 cells:        3
-ABC RESULTS:              nor2 cells:       22
-ABC RESULTS:             nor2b cells:        2
-ABC RESULTS:              nor3 cells:        9
-ABC RESULTS:             nor3b cells:        3
-ABC RESULTS:              nor4 cells:        1
-ABC RESULTS:             nor4b cells:        1
-ABC RESULTS:              o21a cells:        1
-ABC RESULTS:             o21ai cells:        4
-ABC RESULTS:            o21bai cells:        1
-ABC RESULTS:             o41ai cells:        2
-ABC RESULTS:               or3 cells:        2
-ABC RESULTS:               or4 cells:        2
-ABC RESULTS:             xnor2 cells:       13
-ABC RESULTS:              xor2 cells:        9
+ABC RESULTS:   sky130_fd_sc_hd__a211oi_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__a21oi_1 cells:       12
+ABC RESULTS:   sky130_fd_sc_hd__a311oi_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__a31oi_1 cells:        5
+ABC RESULTS:   sky130_fd_sc_hd__a32oi_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__and2_0 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__and3_1 cells:        4
+ABC RESULTS:   sky130_fd_sc_hd__and3b_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__and4_1 cells:        5
+ABC RESULTS:   sky130_fd_sc_hd__clkinv_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__lpflow_inputiso1p_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__lpflow_isobufsrc_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__maj3_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__mux2_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__mux2i_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__mux4_2 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__nand2_1 cells:       13
+ABC RESULTS:   sky130_fd_sc_hd__nand2b_1 cells:        2
+ABC RESULTS:   sky130_fd_sc_hd__nand3_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__nand3b_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__nand4_1 cells:        4
+ABC RESULTS:   sky130_fd_sc_hd__nor2_1 cells:       19
+ABC RESULTS:   sky130_fd_sc_hd__nor3_1 cells:        7
+ABC RESULTS:   sky130_fd_sc_hd__nor3b_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__nor4_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__nor4b_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__o211ai_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__o21ai_0 cells:        7
+ABC RESULTS:   sky130_fd_sc_hd__o21bai_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__o41ai_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__or3_1 cells:        1
+ABC RESULTS:   sky130_fd_sc_hd__or4_1 cells:        3
+ABC RESULTS:   sky130_fd_sc_hd__xnor2_1 cells:       16
+ABC RESULTS:   sky130_fd_sc_hd__xor2_1 cells:        7
 ABC RESULTS:        internal signals:      144
 ABC RESULTS:           input signals:       50
 ABC RESULTS:          output signals:       42
@@ -920,7 +921,7 @@ Optimizing module ws2812b_ctrl.
 
 5.2. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\ws2812b_ctrl'.
-Computing hashes of 188 cells of `\ws2812b_ctrl'.
+Computing hashes of 189 cells of `\ws2812b_ctrl'.
 Finding duplicate cells in `\ws2812b_ctrl'.
 Removed a total of 0 cells.
 
@@ -936,7 +937,7 @@ Performed a total of 0 changes.
 
 5.5. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\ws2812b_ctrl'.
-Computing hashes of 188 cells of `\ws2812b_ctrl'.
+Computing hashes of 189 cells of `\ws2812b_ctrl'.
 Finding duplicate cells in `\ws2812b_ctrl'.
 Removed a total of 0 cells.
 
@@ -964,7 +965,7 @@ Performed a total of 0 changes.
 
 5.12. Executing OPT_MERGE pass (detect identical cells).
 Finding identical cells in module `\ws2812b_ctrl'.
-Computing hashes of 188 cells of `\ws2812b_ctrl'.
+Computing hashes of 189 cells of `\ws2812b_ctrl'.
 Finding duplicate cells in `\ws2812b_ctrl'.
 Removed a total of 0 cells.
 
@@ -985,6 +986,6 @@ Optimizing module ws2812b_ctrl.
 6.2. Executing DEMUXMAP pass.
 Dumping module `\ws2812b_ctrl'.
 
-End of script. Logfile hash: 547e48ab9e, time: 2.98s, user: 2.05s, system: 0.02s, MEM: 81.56 MB peak
+End of script. Logfile hash: d9ec4a153d, time: 3.47s, user: 2.41s, system: 0.05s, MEM: 97.92 MB peak
 Yosys 0.67+ (git sha1 2c28591b8-dirty, GNU /usr/bin/c++ 15.3.0)
-Time spent: 33% 2x abc (0 sec), 13% 1x techmap (0 sec), ...
+Time spent: 30% 2x abc (1 sec), 16% 1x dfflibmap (0 sec), ...

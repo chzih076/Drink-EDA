@@ -9,21 +9,26 @@
 
 ## 源文件获取
 
-由于 GitHub 在中国访问不稳定，使用镜像：
+由于 GitHub 在中国访问不稳定，使用镜像；库源采用**内容在根**的扁平布局
+（GitHub codeload zip 直接解压即得，等价于 git 子模块检出）：
 
 ```bash
-# 主仓库
-git clone https://gitcode.com/google/skywater-pdk.git
+# 库源统一放在 skywater-pdk-libs/（内容在根：cells/tech/timing/models）
+mkdir -p /path/to/skywater-pdk-libs
+# 每个库：从 GitHub（或 gh-proxy.com 代理）下载 codeload zip 后解压
+#   https://github.com/efabless/skywater-pdk-libs-sky130_fd_sc_hd/archive/refs/heads/main.zip
+#   ...（sky130_fd_sc_hdll / hs / lp / ls / ms / hvl / io / pr）
 
-# 标准单元库
-git clone https://gitee.com/mirrors_google/skywater-pdk-libs-sky130_fd_sc_hd.git
-git clone https://gitee.com/mirrors_google/skywater-pdk-libs-sky130_fd_pr.git
-git clone https://gitee.com/mirrors_google/skywater-pdk-libs-sky130_fd_io.git
-# ... 其他库
+# SRAM 宏库（可选，SoC 需要）
+#   https://github.com/efabless/sky130_sram_macros/archive/refs/heads/main.zip
 
 # KLayout 技术文件
 git clone https://gitee.com/deanyou/sky130_klayout_pdk.git
 ```
+
+> **注意**：open_pdks 的 glob（`cells/*/*.gds` 等）要求库源码在根目录；
+> 不要使用 skywater-pdk 超仓库的版本化布局（`latest/` 子目录），
+> 否则所有收集为空（历史上导致 hdll/hs/lp/ls 空目录的根因）。
 
 ## 安装 open_pdks
 
@@ -57,41 +62,51 @@ xvfb-run -a make install
 ## 网表重命名工具
 
 合成后用 ABC 生成的网表使用短 cell 名（`and2`），需要重命名为
-PnR LIB 格式（`and2_1`）：
+PnR LIB 格式（`and2_1`）。新版已并入统一工具 `drink`（Rust，零依赖）：
 
 ```bash
-# 安装
-cp map_synth ~/.local/bin/
-
-# 使用
-map_synth synth.v synth_pnr.v
+# 使用（Rust 版，行为与 Python 版一致，且修复了旧版计数 bug）
+drink map-synth synth.v synth_pnr.v
 ```
 
 ## 一键流程脚本
 
 ```bash
-# 安装
-cp lfl ~/.local/bin/
+# 使用（RTL→GDSII 完整流程，替代旧版 lfl）
+sh scripts/flow.sh <顶层模块> <rtl.v> [芯片宽um] [芯片高um]
 
-# 使用（在 design 目录下）
-lfl config.yaml
+# 示例（在项目目录下）
+sh scripts/flow.sh ws2812b_ctrl rtl/ws2812_led.v 600 600
 ```
 
 ## Liberty 维护
 
+统一工具 `drink pdk-libs`（Rust，替代 `gen_pdk_libs`）：
+
 ```bash
-# 安装
-cp gen_pdk_libs ~/.local/bin/
+# 展开 PnR LIB（读 LEF MACRO 索引，按 cell_footprint 展开尺寸变体）
+drink pdk-libs expand
 
-# 展开 PnR LIB
-gen_pdk_libs expand
-
-# 恢复原始 LIB
-gen_pdk_libs copy
+# 恢复原始 LIB（从源库 timing/*.lib.json 复制）
+drink pdk-libs copy
 
 # 同时做
-gen_pdk_libs both
+drink pdk-libs all
+
+# 生成 PDK 分包目录树（核心 + 5 扩展，供 drink-pkg build）
+drink package --pdk-root ~/.local/share/pdk/sky130A --out build-pkgs/sky130-pdk-split
+
+# 自定义 PDK 根（默认 ~/.local/share/pdk）
+drink pdk-libs expand --pdk-root /usr/local/share/pdk
 ```
+
+> **注意**: `drink pdk-libs expand` 已适配新版 PDK（LEF/lib cell 名带
+> `sky130_fd_sc_hd__` 前缀）；旧版 Python `gen_pdk_libs` 在新版 PDK 下
+> 无法匹配 LEF 索引（expanded=0），已被取代。
+>
+> 新版流程（flow.sh / extract_lvs.sh）直接使用 `tt_025C_1v80.lib`
+> （cell 名与 LEF MACRO 一致），不再需要 `_pnr.lib`；`pdk-libs expand`
+> 保留用于旧版 158-cell 兼容。
 
 > **注意**: `gen_pdk_libs` v1 在展开 LIB 时对每个原始 cell 独立展开，
 > 如果用 `all_seen` 全局去重可避免同名 cell 重复（如 `buf_1` 出现 9 次）。
@@ -163,7 +178,7 @@ dict set ::env(LIB_SYNTH) "$::env(PDK_ROOT)/..."
 ### 完整示例脚本
 
 ```tcl
-read_liberty $pdk/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80_pnr.lib
+read_liberty $pdk/libs.ref/sky130_fd_sc_hd/lib/tt_025C_1v80.lib
 read_lef $pdk/libs.ref/sky130_fd_sc_hd/techlef/sky130_fd_sc_hd.tlef
 read_lef $pdk/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
 read_verilog design_synth.v

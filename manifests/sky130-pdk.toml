@@ -1,5 +1,5 @@
 name = "sky130-pdk"
-version = "1.0"
+version = "1.1"
 desc = "SkyWater sky130A PDK (standard cell libs, LEF, GDS, tech LEF, liberty)"
 deps = ["lib-src"]
 provides = []

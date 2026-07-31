@@ -7,9 +7,7 @@ set -e
 
 IN="${1:?用法: v2spice.sh <pnr.v> [output.spice]}"
 OUT="${2:-${IN%.v}.spice}"
-TOP="ws2812b_ctrl"
-PDK_SPICE="/home/lik/.local/share/pdk/sky130A/libs.ref/sky130_fd_sc_hd/spice"
-SPICE_MERGED="$PDK_SPICE/sky130_fd_sc_hd.spice"
+TOP="${3:-$(grep -m1 '^module ' "$IN" | cut -d'(' -f1 | awk '{print $2}')}"
 
 # ─── 1. 解析 Verilog，提取实例 + pin 连接 ───────────────────
 rm -f /tmp/_v2s_inst.txt /tmp/_v2s_cells.txt
@@ -39,6 +37,7 @@ BEGIN { in_cell = 0 }
     if (/^  [a-z]/ && $1 !~ /^(input|output|wire|assign|module|endmodule)$/ && $2 !~ /^\[/) {
         cell = $1; inst = $2
         gsub(/\(/, "", inst)
+        gsub(/^sky130_fd_sc_hd__/, "", cell)
         if (cell ~ /^sky130_/) next
         print cell >> "/tmp/_v2s_cells.txt"
         
@@ -65,12 +64,44 @@ BEGIN { in_cell = 0 }
     }
 }' "$IN"
 
+# ─── 1.5 解析简单 assign（端口直连，如 assign gpio = gpio_out）───
+# 复杂总线拼接（含 { } 或 [ ]）跳过；标量生成精确映射 A_<src>，
+# 总线（wire [7:0]）生成前缀映射 P_<src>（brightness_4 → debug_4）
+rm -f /tmp/_v2s_assign.sh
+awk '
+/^[ \t]*assign / {
+    line = $0
+    sub(/^[ \t]*assign[ \t]+/, "", line)
+    gsub(/[{};]/, "", line)
+    n = split(line, a, /[ \t]+/)
+    # a[1] = 目标, a[3] = 源（T = S;）
+    if (n >= 3 && a[1] !~ /\[/ && a[3] !~ /\[/ && a[3] != "") {
+        print a[1], a[3]
+    }
+}' "$IN" | while read tgt src; do
+    echo "A_${src}=\"${tgt}\"" >> /tmp/_v2s_assign.sh
+    echo "P_${src}=\"${tgt}\"" >> /tmp/_v2s_assign.sh
+done
+. /tmp/_v2s_assign.sh 2>/dev/null || true
+
 CELLS=$(sort -u /tmp/_v2s_cells.txt)
 
-# ─── 2. 从 SPICE 模型提取每个 cell 的引脚顺序 ─────────────
+# ─── 2. 从 LVS 模型库提取每个 cell 的引脚顺序 ─────────────
+# 模型库（sky130A.lvs.spice）自包含全部 cell subckt；未指定时自动探测
+if [ -z "${SPICE_MODELS:-}" ]; then
+    for m in \
+        "$HOME/.local/share/pdk/sky130A/libs.tech/netgen/sky130A.lvs.spice" \
+        "/usr/local/share/pdk/sky130A/libs.tech/netgen/sky130A.lvs.spice"; do
+        [ -f "$m" ] && { SPICE_MODELS="$m"; break; }
+    done
+fi
+if [ -z "${SPICE_MODELS:-}" ]; then
+    echo "v2spice.sh: 找不到 LVS 模型库（设置 SPICE_MODELS 或安装 sky130-pdk）" >&2
+    exit 1
+fi
 rm -f /tmp/_v2s_pins.sh
 for c in $CELLS; do
-    pins=$(grep -i "^\.subckt sky130_fd_sc_hd__${c}[\. ]" "$SPICE_MERGED" 2>/dev/null | head -1 | cut -d' ' -f3-)
+    pins=$(grep -i "^\.subckt sky130_fd_sc_hd__${c}[\. ]" "$SPICE_MODELS" 2>/dev/null | head -1 | cut -d' ' -f3-)
     if [ -n "$pins" ]; then
         echo "PINS_${c}=\"${pins}\"" >> /tmp/_v2s_pins.sh
     else
@@ -127,20 +158,32 @@ done
   echo ".SUBCKT $TOP $PORTS"
   echo ""
 
-  echo "*** Standard cell models ***"
-  echo ".include \"$SPICE_MERGED\""
-  [ -f "$PDK_SPICE/sky130_ef_sc_hd.spice" ] && echo ".include \"$PDK_SPICE/sky130_ef_sc_hd.spice\""
-  echo ""
-
   echo "*** Instance list ***"
   
   while read cell inst pairs; do
       # 获取引脚顺序
       eval "order=\"\$PINS_${cell}\""
       
+      # 应用 assign 别名（内部网 → 顶层端口；支持总线前缀映射）
+      remap() {
+          for n in $1; do
+              eval "mapped=\"\$A_${n}\""
+              if [ -z "$mapped" ]; then
+                  prefix=${n%%_*}
+                  eval "pmapped=\"\$P_${prefix}\""
+                  if [ -n "$pmapped" ]; then
+                      mapped="${pmapped}_${n#*_}"
+                  fi
+              fi
+              [ -n "$mapped" ] && n="$mapped"
+              echo "$n"
+          done | tr '\n' ' '
+      }
+      
       if [ -z "$order" ]; then
           # 没有引脚信息，按原始顺序输出
           allnets=$(echo "$pairs" | tr ' ' '\n' | cut -d= -f2 | tr '\n' ' ')
+          allnets=$(remap "$allnets")
           echo "X${inst} ${allnets} ${cell}"
       else
           # 构建 pin→net 字典并排序
@@ -154,7 +197,7 @@ done
                       *)        net="" ;;
                   esac
               fi
-              spicenets="${spicenets} ${net}"
+              spicenets="${spicenets} $(remap "$net")"
           done
           echo "X${inst}${spicenets} sky130_fd_sc_hd__${cell}"
       fi
