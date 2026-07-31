@@ -1,0 +1,17 @@
+--- a/base/netfile.c	2026-08-01 03:58:15.974341071 +0800
++++ b/base/netfile.c	2026-08-01 03:58:15.976016567 +0800
+@@ -676,7 +676,13 @@
+   SkipNewLine(NULL);
+   contline = getc(infile);
+ 
+-  while (contline == '+') {
++  /* Continuation lines begin with '+'.  Also keep skipping comment
++   * lines ('*'), since model cards in skywater PDK pm3 files mix
++   * "* Category" banners into the middle of '+'-continuation blocks;
++   * stopping at a comment line would surface the remaining '+'
++   * continuations as spurious "Ignoring line" warnings.
++   */
++  while ((contline == '+') || (contline == '*')) {
+      ungetc(contline, infile);
+      GetNextLine(WHITESPACE_DELIMITER);
+      SkipNewLine(NULL);

@@ -1,0 +1,35 @@
+--- a/base/spice.c	2026-08-01 03:58:15.973467837 +0800
++++ b/base/spice.c	2026-08-01 03:58:15.975189465 +0800
+@@ -545,6 +545,15 @@
+     if ((nexttok[0] == '*') && (!matchnocase(nexttok, "*.GLOBAL")))
+ 	SkipNewLine(NULL);
+ 
++    /* .model cards carry device parameters only, meaningless for LVS.
++     * Skip the card and its "+" continuation lines; skywater PDK pm3
++     * files embed large .model blocks that would otherwise spam
++     * warnings for every continuation line.
++     */
++    else if (matchnocase(nexttok, ".MODEL")) {
++      SpiceSkipNewLine();
++    }
++
+     else if (matchnocase(nexttok, ".SUBCKT")) {
+       SpiceTokNoNewline();
+       if (nexttok == NULL) {
+@@ -1783,9 +1792,13 @@
+       if (scan->next != NULL) scan = scan->next;
+       tail->next = NULL;
+ 
+-      /* Check for class defined inside itself (self-referential loop) */
+-
+-      if (!strcasecmp(model, scan->name)) {
++      /* Check for class defined inside itself (self-referential loop).
++       * Only meaningful inside a subcircuit: the 'model' variable holds
++       * the current subcircuit name there, but is stale leftover when
++       * parsing top-level (file-scope) instances, e.g. the hierarchy
++       * stub lines emitted by the skywater PDK spice generator.
++       */
++      if ((in_subckt == (char)1) && !strcasecmp(model, scan->name)) {
+ 	 Fprintf(stderr, "Fatal: Class \"%s\" is instanced inside of itself!\n",
+ 		scan->name);
+          InputParseError(stderr);

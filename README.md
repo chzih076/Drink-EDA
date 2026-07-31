@@ -189,7 +189,9 @@ Drink-EDA/
 │   ├── openroad_readlef_update_lib.patch
 │   ├── klayout_suffix_match.patch
 │   ├── allocator-patch.patch
-│   └── cut_CMakeLists.patch
+│   ├── cut_CMakeLists.patch
+│   ├── netgen_spice_parse_fixes.patch
+│   └── netgen_skipnewline_fix.patch
 ├── scripts/      ← 流程工具（sh，构建机工具 Python）
 │   ├── flow.sh           ← 通用 RTL→GDSII 流程
 │   ├── def2gds.sh        ← DEF→GDS 转换（sky130 图层映射）

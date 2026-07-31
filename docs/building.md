@@ -30,8 +30,10 @@
    └── 打包裁剪（核心 tt/ff/ss，扩展全 corner；全量本地保留）
 
 6. netgen（GPL-2.0，含源码修复）
-   ├── spice.c: 顶层自引用检查限 subckt 内 + .model 卡跳过
-   └── netfile.c: SpiceSkipNewLine 跳过续行间注释行
+   ├── apply: netgen_spice_parse_fixes.patch
+   │   （spice.c: .model 卡跳过 + 顶层自引用检查限 subckt 内）
+   └── apply: netgen_skipnewline_fix.patch
+       （netfile.c: SpiceSkipNewLine 跳过续行间注释行）
 ```
 
 ## 包构建
